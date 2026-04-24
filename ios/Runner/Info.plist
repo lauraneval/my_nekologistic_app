@@ -26,6 +26,12 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>NekoLogistic membutuhkan akses kamera untuk foto bukti pengiriman (POD).</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>NekoLogistic membutuhkan lokasi untuk validasi posisi kurir saat menyelesaikan pengiriman.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>NekoLogistic dapat menyimpan foto POD ke galeri bila diperlukan.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -53,6 +59,12 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>comgooglemaps</string>
+		<string>geo</string>
+		<string>https</string>
+	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
