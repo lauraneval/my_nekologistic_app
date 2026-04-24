@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 Widget podCards(String title, List<Widget> body) {
   return Container(
-    padding: EdgeInsets.all(16),
+    padding: EdgeInsets.all(20),
     margin: EdgeInsets.symmetric(vertical: 8),
     decoration: BoxDecoration(
       color: Colors.indigo[50],
-      borderRadius: BorderRadius.circular(16)
+      borderRadius: BorderRadius.circular(24)
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,

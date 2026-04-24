@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 AppBar secondaryAppbar() {
   return AppBar(
+    automaticallyImplyLeading: false,
     title: IconButton(
         onPressed: () {
           print('Logo Clicked');
@@ -11,6 +12,9 @@ AppBar secondaryAppbar() {
             'assets/icons/neko_logistic_icon.svg'
         )
     ),
+    surfaceTintColor: Colors.white,
+    backgroundColor: Colors.white,
+    shadowColor: Colors.black12,
     actions: [
       IconButton(
           onPressed: () {
@@ -20,7 +24,7 @@ AppBar secondaryAppbar() {
             Icons.notifications_outlined,
             size: 32,
           )
-      )
+      ),
     ],
   );
 }

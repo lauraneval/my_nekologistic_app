@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:my_nekologistic_app/features/proof_of_delivery/pages/pod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/network/api_client.dart';
@@ -204,6 +205,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     final task = widget.task;
@@ -257,7 +260,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             const SizedBox(height: 12),
           ],
           FilledButton.icon(
-            onPressed: _isSubmitting ? null : _submitPod,
+            // Navigate to POD Page for this task
+            onPressed: () { Navigator.push(
+                context, MaterialPageRoute(builder: (context) => ProofOfDeliveryPage(task: task, apiClient: widget.apiClient))
+            );},
             icon: _isSubmitting
                 ? const SizedBox(
                     width: 18,
