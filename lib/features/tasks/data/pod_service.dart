@@ -11,7 +11,7 @@ import '../../../bootstrap/app_bootstrap.dart';
 import '../../../core/config/app_env.dart';
 import '../../../core/network/api_client.dart';
 import 'activity_log_queue_service.dart';
-import '../domain/courier_task.dart';
+import '../domain/courier_bag_models.dart';
 
 class PodFailure implements Exception {
   PodFailure(this.message);
@@ -78,7 +78,7 @@ class PodService {
   }
 
   Future<PodSubmissionResult> submitProofOfDelivery({
-    required CourierTask task,
+    required CourierBagPackage packageItem,
     required File preparedImageFile,
     PodProgressCallback? onProgress,
   }) async {
@@ -88,13 +88,16 @@ class PodService {
 
     try {
       await _flushPendingActivityLogs();
-      await _tryLogActivity(action: 'pod_submission_started', task: task);
+      await _tryLogActivity(
+        action: 'pod_submission_started',
+        packageItem: packageItem,
+      );
 
       onProgress?.call(PodProgressStep.lockingLocation);
       final position = await _lockCourierPosition();
       await _tryLogActivity(
         action: 'pod_location_locked',
-        task: task,
+        packageItem: packageItem,
         metadata: {
           'courier_latitude': position.latitude,
           'courier_longitude': position.longitude,
@@ -102,17 +105,23 @@ class PodService {
       );
 
       onProgress?.call(PodProgressStep.validatingDistance);
-      _validateDistance(position: position, task: task);
-      await _tryLogActivity(action: 'pod_distance_validated', task: task);
+      _validateDistance(position: position, packageItem: packageItem);
+      await _tryLogActivity(
+        action: 'pod_distance_validated',
+        packageItem: packageItem,
+      );
 
       final publicUrl = await _withRetry(
         step: PodProgressStep.uploadingPhoto,
         onProgress: onProgress,
-        operation: () => _uploadPhoto(task: task, imageFile: preparedImageFile),
+        operation: () => _uploadPhoto(
+          packageItem: packageItem,
+          imageFile: preparedImageFile,
+        ),
       );
       await _tryLogActivity(
         action: 'pod_photo_uploaded',
-        task: task,
+        packageItem: packageItem,
         metadata: {'pod_image_url': publicUrl},
       );
 
@@ -120,21 +129,21 @@ class PodService {
         step: PodProgressStep.updatingStatus,
         onProgress: onProgress,
         operation: () => _apiClient.put(
-          '/courier/tasks/${task.id}/deliver',
+          '/courier/tasks/${packageItem.id}/deliver',
           data: {
             'status': 'DELIVERED',
             'pod_image_url': publicUrl,
             'courier_latitude': position.latitude,
             'courier_longitude': position.longitude,
-            'target_latitude': task.latitude,
-            'target_longitude': task.longitude,
+            'target_latitude': packageItem.latitude,
+            'target_longitude': packageItem.longitude,
             'delivered_at': DateTime.now().toUtc().toIso8601String(),
           },
         ),
       );
       await _tryLogActivity(
         action: 'pod_status_delivered',
-        task: task,
+        packageItem: packageItem,
         metadata: {
           'status': 'DELIVERED',
           'courier_latitude': position.latitude,
@@ -152,14 +161,14 @@ class PodService {
     } on PodFailure {
       await _tryLogActivity(
         action: 'pod_submission_failed',
-        task: task,
+        packageItem: packageItem,
         metadata: {'reason': 'business_validation_failed'},
       );
       rethrow;
     } catch (error) {
       await _tryLogActivity(
         action: 'pod_submission_failed',
-        task: task,
+        packageItem: packageItem,
         metadata: {
           'reason': _mapErrorMessage(error),
           'error_type': error.runtimeType.toString(),
@@ -212,12 +221,12 @@ class PodService {
   }
 
   Future<String> _uploadPhoto({
-    required CourierTask task,
+    required CourierBagPackage packageItem,
     required File imageFile,
   }) async {
     final storage = Supabase.instance.client.storage.from(AppEnv.podBucket);
     final fileName = 'pod_${DateTime.now().millisecondsSinceEpoch}.jpg';
-    final path = 'courier/${task.id}/$fileName';
+    final path = 'courier/${packageItem.id}/$fileName';
 
     await storage.upload(
       path,
@@ -230,17 +239,17 @@ class PodService {
 
   void _validateDistance({
     required Position position,
-    required CourierTask task,
+    required CourierBagPackage packageItem,
   }) {
-    if (!task.hasCoordinates) {
+    if (!packageItem.hasCoordinates) {
       return;
     }
 
     final distanceMeters = Geolocator.distanceBetween(
       position.latitude,
       position.longitude,
-      task.latitude!,
-      task.longitude!,
+      packageItem.latitude!,
+      packageItem.longitude!,
     );
 
     if (distanceMeters > AppEnv.maxDeliveryDistanceMeters) {
@@ -305,7 +314,7 @@ class PodService {
 
   Future<void> _tryLogActivity({
     required String action,
-    required CourierTask task,
+    required CourierBagPackage packageItem,
     Map<String, dynamic>? metadata,
   }) async {
     if (!AppEnv.enableActivityLogs) {
@@ -314,7 +323,7 @@ class PodService {
 
     final payload = _buildActivityPayload(
       action: action,
-      task: task,
+      packageItem: packageItem,
       metadata: metadata,
     );
 
@@ -335,7 +344,7 @@ class PodService {
 
   Map<String, dynamic> _buildActivityPayload({
     required String action,
-    required CourierTask task,
+    required CourierBagPackage packageItem,
     Map<String, dynamic>? metadata,
   }) {
     final actorId = Supabase.instance.client.auth.currentUser?.id;
@@ -343,8 +352,12 @@ class PodService {
       'actor_id': actorId,
       'action': action,
       'entity': 'package',
-      'entity_id': task.id,
-      'metadata': {'resi': task.resi, 'status': task.status, ...?metadata},
+      'entity_id': packageItem.id,
+      'metadata': {
+        'resi': packageItem.resi,
+        'status': packageItem.status,
+        ...?metadata,
+      },
     };
   }
 
