@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/network/api_client.dart';
 import '../data/auth_service.dart';
-import '../../tasks/presentation/task_list_page.dart';
+import '../../mobile/presentation/mobile_shell_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({
@@ -53,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
 
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (_) => TaskListPage(
+          builder: (_) => MobileShellPage(
             apiClient: widget.apiClient,
             authService: widget.authService,
           ),

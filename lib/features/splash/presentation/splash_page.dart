@@ -4,7 +4,7 @@ import '../../../bootstrap/app_bootstrap.dart';
 import '../../../core/network/api_client.dart';
 import '../../auth/data/auth_service.dart';
 import '../../auth/presentation/login_page.dart';
-import '../../tasks/presentation/task_list_page.dart';
+import '../../mobile/presentation/mobile_shell_page.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({
@@ -41,7 +41,7 @@ class _SplashPageState extends State<SplashPage> {
     }
 
     final targetPage = widget.authService.hasSession
-        ? TaskListPage(
+      ? MobileShellPage(
             apiClient: widget.apiClient,
             authService: widget.authService,
           )

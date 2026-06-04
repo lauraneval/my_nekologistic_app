@@ -1,0 +1,43 @@
+import '../../../core/network/api_client.dart';
+import '../domain/mobile_models.dart';
+
+class MobileCourierApiClient {
+  MobileCourierApiClient({required ApiClient apiClient}) : _apiClient = apiClient;
+
+  final ApiClient _apiClient;
+
+  Future<MobileTaskBoardResponse> fetchTaskBoard() async {
+    final response = await _apiClient.get('/api/mobile/tasks');
+    return MobileTaskBoardResponse.fromJson(_extractObject(response.data));
+  }
+
+  Future<MobileTaskDetailResponse> fetchTaskDetail(String id) async {
+    final response = await _apiClient.get('/api/mobile/tasks/$id');
+    return MobileTaskDetailResponse.fromJson(_extractObject(response.data));
+  }
+
+  Future<void> deliverTask(String id, MobileDeliverRequest request) async {
+    await _apiClient.put('/api/mobile/tasks/$id/deliver', data: request.toJson());
+  }
+
+  Future<MobileHistoryResponse> fetchHistory() async {
+    final response = await _apiClient.get('/api/mobile/history');
+    return MobileHistoryResponse.fromJson(_extractObject(response.data));
+  }
+
+  Future<MobileProfileResponse> fetchProfile() async {
+    final response = await _apiClient.get('/api/mobile/profile');
+    return MobileProfileResponse.fromJson(_extractObject(response.data));
+  }
+
+  Map<String, dynamic> _extractObject(Object? payload) {
+    if (payload is Map<String, dynamic>) {
+      final data = payload['data'];
+      if (data is Map<String, dynamic>) {
+        return data;
+      }
+      return payload;
+    }
+    return <String, dynamic>{};
+  }
+}

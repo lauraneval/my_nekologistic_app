@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 
 import '../../bootstrap/app_bootstrap.dart';
@@ -9,7 +11,7 @@ class ApiClient {
     : _authService = authService,
       _dio = Dio(
         BaseOptions(
-          baseUrl: AppEnv.apiBaseUrl,
+          baseUrl: _normalizeBaseUrl(AppEnv.apiBaseUrl),
           connectTimeout: const Duration(seconds: 20),
           receiveTimeout: const Duration(seconds: 20),
           contentType: 'application/json',
@@ -56,5 +58,22 @@ class ApiClient {
     if (!AppBootstrap.isSupabaseInitialized) {
       return;
     }
+  }
+
+  static String _normalizeBaseUrl(String baseUrl) {
+    if (baseUrl.isEmpty) {
+      return baseUrl;
+    }
+
+    final uri = Uri.tryParse(baseUrl);
+    if (uri == null || !uri.hasAuthority || !Platform.isAndroid) {
+      return baseUrl;
+    }
+
+    if (uri.host == 'localhost' || uri.host == '127.0.0.1') {
+      return uri.replace(host: '10.0.2.2').toString();
+    }
+
+    return baseUrl;
   }
 }
