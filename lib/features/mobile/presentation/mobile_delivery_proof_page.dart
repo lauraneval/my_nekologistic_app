@@ -22,7 +22,8 @@ class MobileDeliveryProofPage extends StatefulWidget {
   final ApiClient apiClient;
 
   @override
-  State<MobileDeliveryProofPage> createState() => _MobileDeliveryProofPageState();
+  State<MobileDeliveryProofPage> createState() =>
+      _MobileDeliveryProofPageState();
 }
 
 class _MobileDeliveryProofPageState extends State<MobileDeliveryProofPage> {
@@ -47,7 +48,9 @@ class _MobileDeliveryProofPageState extends State<MobileDeliveryProofPage> {
     setState(() {
       _selectedImage = file;
       _errorMessage = '';
-      _statusMessage = file == null ? 'Tidak ada foto yang dipilih.' : 'Foto siap diupload.';
+      _statusMessage = file == null
+          ? 'Tidak ada foto yang dipilih.'
+          : 'Foto siap diupload.';
     });
   }
 
@@ -62,11 +65,16 @@ class _MobileDeliveryProofPageState extends State<MobileDeliveryProofPage> {
       permission = await Geolocator.requestPermission();
     }
 
-    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-      throw const MobileLocationPermissionException('Izin lokasi dibutuhkan untuk submit delivery.');
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      throw const MobileLocationPermissionException(
+        'Izin lokasi dibutuhkan untuk submit delivery.',
+      );
     }
 
-    return Geolocator.getCurrentPosition(locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
+    return Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+    );
   }
 
   Future<void> _submit() async {
@@ -141,21 +149,75 @@ class _MobileDeliveryProofPageState extends State<MobileDeliveryProofPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Proof of Delivery')),
+      appBar: AppBar(
+        title: const Text('Proof of Delivery'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Card(
+            elevation: 1,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(widget.task.title, style: Theme.of(context).textTheme.titleLarge),
-                  const SizedBox(height: 8),
-                  Text('Proof URL currently: ${widget.task.proofUrl ?? '-'}'),
-                  const SizedBox(height: 8),
-                  Text('GPS saat submit dikirim sebagai latitude dan longitude.'),
+                  Text(
+                    widget.task.title,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  if (widget.task.proofUrl != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.green[50],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.green[200]!),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.check_circle,
+                            color: Colors.green[700],
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Proof sudah diupload',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Colors.green[700],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ] else ...[
+                    Text(
+                      'Belum ada bukti pengiriman',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.orange[700],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  Text(
+                    'Ambil foto dari kamera atau galeri sebagai bukti pengiriman',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                  ),
                 ],
               ),
             ),
@@ -164,27 +226,46 @@ class _MobileDeliveryProofPageState extends State<MobileDeliveryProofPage> {
           Row(
             children: [
               Expanded(
-                child: FilledButton.tonalIcon(
-                  onPressed: _isSubmitting ? null : () => _pickPhoto(ImageSource.camera),
+                child: FilledButton.icon(
+                  onPressed: _isSubmitting
+                      ? null
+                      : () => _pickPhoto(ImageSource.camera),
                   icon: const Icon(Icons.photo_camera_outlined),
                   label: const Text('Kamera'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
+                    minimumSize: const Size.fromHeight(48),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _isSubmitting ? null : () => _pickPhoto(ImageSource.gallery),
-                  icon: const Icon(Icons.upload_file_outlined),
-                  label: const Text('Upload Foto'),
+                child: FilledButton.icon(
+                  onPressed: _isSubmitting
+                      ? null
+                      : () => _pickPhoto(ImageSource.gallery),
+                  icon: const Icon(Icons.image_outlined),
+                  label: const Text('Galeri'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.grey[600],
+                    minimumSize: const Size.fromHeight(48),
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
           if (_selectedImage != null)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.file(_selectedImage!, height: 260, fit: BoxFit.cover),
+            Card(
+              elevation: 1,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(
+                  _selectedImage!,
+                  height: 280,
+                  fit: BoxFit.cover,
+                ),
+              ),
             )
           else
             const _EmptyPreview(),
@@ -194,12 +275,37 @@ class _MobileDeliveryProofPageState extends State<MobileDeliveryProofPage> {
               color: Theme.of(context).colorScheme.errorContainer,
               child: Padding(
                 padding: const EdgeInsets.all(12),
-                child: Text(_errorMessage),
+                child: Row(
+                  children: [
+                    Icon(Icons.error, color: Colors.red[700], size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(_errorMessage)),
+                  ],
+                ),
               ),
             ),
-          const SizedBox(height: 8),
-          Text(_statusMessage),
-          const SizedBox(height: 12),
+          if (_statusMessage.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Card(
+              color: Colors.blue[50],
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Icon(Icons.info, color: Colors.blue[700], size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _statusMessage,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 20),
           FilledButton.icon(
             onPressed: _isSubmitting ? null : _submit,
             icon: _isSubmitting
@@ -208,8 +314,15 @@ class _MobileDeliveryProofPageState extends State<MobileDeliveryProofPage> {
                     height: 18,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Icon(Icons.send_outlined),
-            label: Text(_isSubmitting ? 'Mengirim...' : 'Submit Delivery'),
+                : const Icon(Icons.check_circle_outline),
+            label: Text(
+              _isSubmitting ? 'Mengirim...' : 'Upload & Complete Delivery',
+            ),
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF2563EB),
+              minimumSize: const Size.fromHeight(50),
+              textStyle: Theme.of(context).textTheme.labelLarge,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -227,14 +340,36 @@ class _EmptyPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 220,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).dividerColor),
+    return Card(
+      elevation: 1,
+      child: Container(
+        height: 280,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.image_outlined, size: 48, color: Colors.grey[400]),
+            const SizedBox(height: 12),
+            Text(
+              'Belum ada foto proof',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Pilih foto dari kamera atau galeri',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: Colors.grey[500]),
+            ),
+          ],
+        ),
       ),
-      child: const Text('Belum ada foto proof.'),
     );
   }
 }

@@ -111,6 +111,11 @@ class MobileDashboardSummary {
       _readInt(raw, ['delivered_today', 'today_delivered', 'todayDelivered']);
   int get totalPackages =>
       _readInt(raw, ['total_packages', 'package_total', 'totalPackages']);
+  double get totalDistance =>
+      _readDouble(raw, ['total_distance', 'distance_total', 'totalDistance']) ??
+      0;
+  int get remainingDrops =>
+      _readInt(raw, ['remaining_drops', 'drops_remaining', 'remainingDrops']);
 }
 
 class MobileTaskBoardResponse {

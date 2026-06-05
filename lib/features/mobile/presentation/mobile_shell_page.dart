@@ -79,16 +79,53 @@ class _MobileShellPageState extends State<MobileShellPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _pages),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() => _currentIndex = index);
-        },
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.history_outlined), selectedIcon: Icon(Icons.history), label: 'History'),
-          NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Profile'),
-        ],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: Colors.grey[200]!)),
+        ),
+        child: NavigationBar(
+          selectedIndex: _currentIndex,
+          onDestinationSelected: (index) {
+            setState(() => _currentIndex = index);
+          },
+          indicatorColor: Colors.transparent,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          destinations: [
+            NavigationDestination(
+              icon: Icon(
+                Icons.receipt_long_outlined,
+                color: _currentIndex == 0
+                    ? const Color(0xFF2563EB)
+                    : Colors.grey[400],
+              ),
+              selectedIcon: Icon(
+                Icons.receipt_long,
+                color: const Color(0xFF2563EB),
+              ),
+              label: 'TASKS',
+            ),
+            NavigationDestination(
+              icon: Icon(
+                Icons.history_outlined,
+                color: _currentIndex == 1
+                    ? const Color(0xFF2563EB)
+                    : Colors.grey[400],
+              ),
+              selectedIcon: Icon(Icons.history, color: const Color(0xFF2563EB)),
+              label: 'HISTORY',
+            ),
+            NavigationDestination(
+              icon: Icon(
+                Icons.person_outline,
+                color: _currentIndex == 2
+                    ? const Color(0xFF2563EB)
+                    : Colors.grey[400],
+              ),
+              selectedIcon: Icon(Icons.person, color: const Color(0xFF2563EB)),
+              label: 'PROFILE',
+            ),
+          ],
+        ),
       ),
     );
   }

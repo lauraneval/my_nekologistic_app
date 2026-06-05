@@ -60,7 +60,12 @@ class _MobileTaskDetailPageState extends State<MobileTaskDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Task Detail')),
+      appBar: AppBar(
+        title: const Text('Task Detail'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+      ),
       body: FutureBuilder<MobileTaskDetailResponse>(
         future: _future,
         builder: (context, snapshot) {
@@ -83,51 +88,118 @@ class _MobileTaskDetailPageState extends State<MobileTaskDetailPage> {
               padding: const EdgeInsets.all(16),
               children: [
                 Card(
+                  elevation: 1,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(task.title, style: Theme.of(context).textTheme.titleLarge),
-                        const SizedBox(height: 8),
-                        Text('Weight: ${task.weightKg?.toStringAsFixed(1) ?? '-'} kg'),
-                        const SizedBox(height: 6),
-                        Text('Handling instruction: ${task.handlingInstruction ?? '-'}'),
-                        const SizedBox(height: 6),
-                        Text('Expected arrival: ${task.expectedArrival?.toLocal().toString() ?? '-'}'),
-                        const SizedBox(height: 6),
-                        Text('Destination coords: ${task.latitude?.toStringAsFixed(6) ?? '-'}, ${task.longitude?.toStringAsFixed(6) ?? '-'}'),
-                        const SizedBox(height: 6),
-                        Text('Recipient: ${task.recipientName ?? '-'}'),
-                        const SizedBox(height: 6),
-                        Text('Address: ${task.recipientAddress ?? '-'}'),
+                        Text(
+                          task.title,
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildDetailRow(
+                          context,
+                          'Weight',
+                          '${task.weightKg?.toStringAsFixed(1) ?? '-'} kg',
+                        ),
+                        const SizedBox(height: 12),
+                        _buildDetailRow(
+                          context,
+                          'Handling Instruction',
+                          task.handlingInstruction ?? '-',
+                        ),
+                        const SizedBox(height: 12),
+                        _buildDetailRow(
+                          context,
+                          'Expected Arrival',
+                          task.expectedArrival?.toLocal().toString() ?? '-',
+                        ),
+                        const SizedBox(height: 12),
+                        _buildDetailRow(
+                          context,
+                          'Recipient',
+                          task.recipientName ?? '-',
+                        ),
+                        const SizedBox(height: 12),
+                        _buildDetailRow(
+                          context,
+                          'Address',
+                          task.recipientAddress ?? '-',
+                        ),
+                        const SizedBox(height: 12),
+                        _buildDetailRow(
+                          context,
+                          'Coordinates',
+                          '${task.latitude?.toStringAsFixed(6) ?? '-'}, ${task.longitude?.toStringAsFixed(6) ?? '-'}',
+                        ),
                       ],
                     ),
                   ),
                 ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: task.hasCoordinates
+                            ? () => _navigate(task)
+                            : null,
+                        icon: const Icon(Icons.map_outlined),
+                        label: const Text('Navigate'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          minimumSize: const Size.fromHeight(48),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: () => _openProofPage(task),
+                        icon: const Icon(Icons.camera_alt_outlined),
+                        label: const Text('Proof'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          minimumSize: const Size.fromHeight(48),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 16),
-                FilledButton.icon(
-                  onPressed: task.hasCoordinates
-                      ? () => _navigate(task)
-                      : null,
-                  icon: const Icon(Icons.map_outlined),
-                  label: const Text('Navigate'),
-                ),
-                const SizedBox(height: 12),
-                FilledButton.tonalIcon(
-                  onPressed: () => _openProofPage(task),
-                  icon: const Icon(Icons.camera_alt_outlined),
-                  label: const Text('Proof of Delivery'),
-                ),
-                const SizedBox(height: 12),
-                if (task.proofUrl != null) ...[
-                  Text('Existing proof URL: ${task.proofUrl}'),
-                ],
-                const SizedBox(height: 8),
-                Text(
-                  'Backend yang memvalidasi radius 100 meter. Flutter hanya mengirim latitude, longitude, dan proof_url saat submit.',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
+                if (task.proofUrl != null)
+                  Card(
+                    color: Colors.green[50],
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.check_circle,
+                            color: Colors.green[700],
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Proof sudah diupload',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Colors.green[700],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
               ],
             ),
           );
@@ -140,8 +212,38 @@ class _MobileTaskDetailPageState extends State<MobileTaskDetailPage> {
     final query = task.hasCoordinates
         ? '${task.latitude},${task.longitude}'
         : task.recipientAddress ?? task.title;
-    final uri = Uri.https('www.google.com', '/maps/search/', {'api': '1', 'query': query});
+    final uri = Uri.https('www.google.com', '/maps/search/', {
+      'api': '1',
+      'query': query,
+    });
     await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  Widget _buildDetailRow(BuildContext context, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 100,
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -152,8 +254,14 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final message = error is MobileApiException ? (error as MobileApiException).message : 'Gagal memuat detail task.';
-    return ListView(children: [Padding(padding: const EdgeInsets.all(24), child: Text(message))]);
+    final message = error is MobileApiException
+        ? (error as MobileApiException).message
+        : 'Gagal memuat detail task.';
+    return ListView(
+      children: [
+        Padding(padding: const EdgeInsets.all(24), child: Text(message)),
+      ],
+    );
   }
 }
 
