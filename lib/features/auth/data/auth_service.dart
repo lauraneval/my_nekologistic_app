@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../bootstrap/app_bootstrap.dart';
 import '../../../core/storage/secure_storage_service.dart';
+import '../../../services/session_service.dart';
 
 class AuthService {
   AuthService({required SecureStorageService secureStorageService})
@@ -38,6 +39,8 @@ class AuthService {
       accessToken: session.accessToken,
       refreshToken: session.refreshToken ?? '',
     );
+
+    await SessionService.updateLastSeen(force: true);
   }
 
   Future<void> signOut() async {

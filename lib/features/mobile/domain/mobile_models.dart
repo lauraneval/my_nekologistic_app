@@ -11,8 +11,19 @@ class MobileTaskItem {
     required this.queueType,
     required this.recipientName,
     required this.recipientAddress,
+    required this.recipientPhone,
+    required this.recipientEmail,
+    required this.packageName,
+    required this.accessCode,
+    required this.bagCode,
     required this.proofUrl,
     required this.deliveredAt,
+    required this.senderName,
+    required this.senderPhone,
+    required this.senderEmail,
+    required this.lengthCm,
+    required this.widthCm,
+    required this.heightCm,
     required this.raw,
   });
 
@@ -27,8 +38,19 @@ class MobileTaskItem {
   final String? queueType;
   final String? recipientName;
   final String? recipientAddress;
+  final String? recipientPhone;
+  final String? recipientEmail;
+  final String? packageName;
+  final String? accessCode;
+  final String? bagCode;
   final String? proofUrl;
   final DateTime? deliveredAt;
+  final String? senderName;
+  final String? senderPhone;
+  final String? senderEmail;
+  final double? lengthCm;
+  final double? widthCm;
+  final double? heightCm;
   final Map<String, dynamic> raw;
 
   bool get hasCoordinates => latitude != null && longitude != null;
@@ -83,12 +105,47 @@ class MobileTaskItem {
         'address',
         'destination_address',
       ]),
+      recipientPhone: _readNullableString(raw, [
+        'recipient_phone',
+        'receiver_phone',
+        'phone',
+        'phone_number',
+      ]),
+      recipientEmail: _readNullableString(raw, [
+        'recipient_email',
+        'receiver_email',
+        'email',
+      ]),
+      packageName: _readNullableString(raw, [
+        'package_name',
+        'packageName',
+        'item_name',
+        'product_name',
+      ]),
+      accessCode: _readNullableString(raw, [
+        'access_code',
+        'accessCode',
+        'code',
+        'pin',
+      ]),
+      bagCode: _readNullableString(raw, [
+        'bag_code',
+        'bagCode',
+        'tracking_code',
+        'resi',
+      ]),
       proofUrl: _readNullableString(raw, [
         'proof_url',
         'proofUrl',
         'proof_image_url',
       ]),
       deliveredAt: _readDateTime(raw, ['delivered_at', 'deliveredAt']),
+      senderName: _readNullableString(raw, ['sender_name', 'senderName']),
+      senderPhone: _readNullableString(raw, ['sender_phone', 'senderPhone']),
+      senderEmail: _readNullableString(raw, ['sender_email', 'senderEmail']),
+      lengthCm: _readDouble(raw, ['length_cm', 'lengthCm']),
+      widthCm: _readDouble(raw, ['width_cm', 'widthCm']),
+      heightCm: _readDouble(raw, ['height_cm', 'heightCm']),
       raw: raw,
     );
   }
@@ -111,6 +168,10 @@ class MobileDashboardSummary {
       _readInt(raw, ['delivered_today', 'today_delivered', 'todayDelivered']);
   int get totalPackages =>
       _readInt(raw, ['total_packages', 'package_total', 'totalPackages']);
+  double get totalDistanceKm =>
+      _readDouble(raw, ['total_distance_km', 'totalDistanceKm', 'distance_km']) ?? 0.0;
+  int get remainingDrop =>
+      _readInt(raw, ['remaining_drop', 'remainingDrop', 'remaining_drops', 'drops_remaining']);
 }
 
 class MobileTaskBoardResponse {
@@ -126,29 +187,31 @@ class MobileTaskBoardResponse {
 
   factory MobileTaskBoardResponse.fromJson(Map<String, dynamic> json) {
     final payload = _readObject(json, ['data', 'result']);
-    final directTasks = _readAnyTasks(payload);
+    final explicitActive = _readTasks(payload, ['active_tasks', 'activeTasks', 'active']);
+    final explicitQueue = _readTasks(payload, [
+      'queue_tasks', 'queueTasks', 'queued_tasks', 'pending_tasks',
+    ]);
+
+    final List<MobileTaskItem> activeTasks;
+    final List<MobileTaskItem> queueTasks;
+
+    if (explicitActive.isNotEmpty || explicitQueue.isNotEmpty) {
+      activeTasks = explicitActive;
+      queueTasks = explicitQueue;
+    } else {
+      final directTasks = _readAnyTasks(payload);
+      activeTasks = directTasks.where(_isActiveLike).toList(growable: false);
+      queueTasks = directTasks.where(_isQueueLike).toList(growable: false);
+    }
+
     return MobileTaskBoardResponse(
       summary: MobileDashboardSummary.fromJson(
         _readObject(payload, [
-          'summary',
-          'daily_summary',
-          'dailySummary',
-          'stats',
-          'profile',
-          'data',
+          'summary', 'daily_summary', 'dailySummary', 'stats', 'profile', 'data',
         ]),
       ),
-      activeTasks: _readTasks(payload, [
-        'active_tasks',
-        'activeTasks',
-        'active',
-      ]).followedBy(directTasks.where(_isActiveLike)).toList(growable: false),
-      queueTasks: _readTasks(payload, [
-        'queue_tasks',
-        'queueTasks',
-        'queued_tasks',
-        'pending_tasks',
-      ]).followedBy(directTasks.where(_isQueueLike)).toList(growable: false),
+      activeTasks: activeTasks,
+      queueTasks: queueTasks,
     );
   }
 }
@@ -251,13 +314,23 @@ class MobileProfileResponse {
   final Map<String, dynamic> raw;
 
   factory MobileProfileResponse.fromJson(Map<String, dynamic> json) {
-    return MobileProfileResponse(
-      raw: _readObject(json, ['data', 'result', 'profile', 'courier', 'user']),
-    );
+    // Merge sub-objects (user, courier, profile) so all fields are accessible
+    // regardless of nesting. Top-level keys win over sub-object keys.
+    final merged = <String, dynamic>{};
+    for (final key in ['user', 'courier', 'profile', 'result', 'data']) {
+      final obj = json[key];
+      if (obj is Map<String, dynamic>) merged.addAll(obj);
+    }
+    merged.addAll(json); // top-level wins
+    return MobileProfileResponse(raw: merged);
   }
 
-  String get name => _readString(raw, ['name', 'full_name', 'courier_name']);
-  String get email => _readString(raw, ['email']);
+  String get name => _readString(raw, ['name', 'full_name', 'courier_name', 'username']);
+  String get email => _readString(raw, ['email', 'email_address', 'courier_email', 'user_email']);
+  String get phone => _readString(raw, [
+    'phone', 'phone_number', 'mobile', 'contact_phone',
+    'no_hp', 'nomor_hp', 'telephone', 'telepon', 'hp', 'no_telepon',
+  ]);
   double get efficiencyScore =>
       _readDouble(raw, ['efficiency_score', 'efficiencyScore']) ?? 0;
   int get totalPackages => _readInt(raw, ['total_packages', 'totalPackages']);
@@ -342,7 +415,7 @@ List<MobileTaskItem> _readTasks(Map<String, dynamic> json, List<String> keys) {
     if (value is List<dynamic>) {
       return value
           .whereType<Map<String, dynamic>>()
-          .map(MobileTaskItem.fromJson)
+          .expand(_expandBagPackages)
           .toList(growable: false);
     }
   }
@@ -361,12 +434,30 @@ List<MobileTaskItem> _readAnyTasks(Map<String, dynamic> json) {
     if (json['history'] is List<dynamic>) json['history'] as List<dynamic>,
   ];
 
-  final items = nestedCandidates
+  return nestedCandidates
       .expand((candidate) => candidate.whereType<Map<String, dynamic>>())
-      .map(MobileTaskItem.fromJson)
+      .expand(_expandBagPackages)
       .toList(growable: false);
+}
 
-  return items;
+/// Jika bag punya packages[] lebih dari 1, expand jadi satu item per package.
+/// Package-specific data (receiver, resi, berat, dimensi) override bag-level.
+/// bag_code dan id tetap dari bag agar navigasi ke task detail tetap benar.
+Iterable<MobileTaskItem> _expandBagPackages(Map<String, dynamic> bagJson) {
+  final packages = bagJson['packages'];
+  if (packages is List<dynamic> && packages.length > 1) {
+    return packages.whereType<Map<String, dynamic>>().map((pkg) {
+      final merged = <String, dynamic>{
+        ...bagJson,
+        ...pkg,
+        'id': bagJson['id'],
+        'bag_code': bagJson['bag_code'] ?? bagJson['bagCode'],
+        'status': pkg['status'] ?? bagJson['status'],
+      };
+      return MobileTaskItem.fromJson(merged);
+    });
+  }
+  return [MobileTaskItem.fromJson(bagJson)];
 }
 
 bool _isActiveLike(MobileTaskItem task) {

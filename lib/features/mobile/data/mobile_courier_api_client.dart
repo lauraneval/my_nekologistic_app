@@ -31,6 +31,14 @@ class MobileCourierApiClient {
     return MobileProfileResponse.fromJson(_extractObject(response.data));
   }
 
+  Future<void> updateProfile(Map<String, dynamic> data) async {
+    await _apiClient.patch('/mobile/profile', data: data);
+  }
+
+  Future<void> acceptTask(String id) async {
+    await _apiClient.patch('/mobile/tasks/$id/accept', data: {'status': 'IN_TRANSIT'});
+  }
+
   Map<String, dynamic> _extractObject(Object? payload) {
     if (payload is Map<String, dynamic>) {
       final data = payload['data'];

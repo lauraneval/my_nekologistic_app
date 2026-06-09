@@ -99,6 +99,14 @@ class MobileCourierRepository {
     return _handle(() => _apiClient.fetchProfile());
   }
 
+  Future<void> updateProfile(Map<String, dynamic> data) {
+    return _handle(() => _apiClient.updateProfile(data));
+  }
+
+  Future<void> acceptTask(String id) {
+    return _handle(() => _apiClient.acceptTask(id));
+  }
+
   Future<T> _handle<T>(Future<T> Function() action, {String? operation}) async {
     try {
       return await action();

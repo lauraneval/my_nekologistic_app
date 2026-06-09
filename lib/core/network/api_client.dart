@@ -51,6 +51,11 @@ class ApiClient {
     return _dio.put(path, data: data);
   }
 
+  Future<Response<dynamic>> patch(String path, {Object? data}) {
+    _validateBaseUrl();
+    return _dio.patch(path, data: data);
+  }
+
   void _validateBaseUrl() {
     if (AppEnv.apiBaseUrl.isEmpty) {
       throw StateError('API_BASE_URL belum dikonfigurasi.');

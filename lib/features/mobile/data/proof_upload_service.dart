@@ -28,7 +28,7 @@ class ProofUploadService {
     await bucket.upload(
       path,
       file,
-      fileOptions: const FileOptions(upsert: true, contentType: 'image/jpeg'),
+      fileOptions: const FileOptions(upsert: false, contentType: 'image/jpeg'),
     );
 
     return bucket.getPublicUrl(path);

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/config/app_env.dart';
+import '../services/notification_service.dart';
 
 class AppBootstrap {
   static bool _supabaseInitialized = false;
@@ -25,5 +26,6 @@ class AppBootstrap {
     );
 
     _supabaseInitialized = true;
+    await NotificationService.initialize();
   }
 }
