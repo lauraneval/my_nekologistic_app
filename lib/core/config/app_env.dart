@@ -1,7 +1,13 @@
 class AppEnv {
   static const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
   static const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
-  static const apiBaseUrl = String.fromEnvironment('API_BASE_URL');
+
+  /// REST API base URL. Falls back to production when not provided via --dart-define.
+  static const apiBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'https://nekologistic.lauraneval.dev',
+  );
+
   static const enableActivityLogs = bool.fromEnvironment(
     'ENABLE_ACTIVITY_LOGS',
     defaultValue: true,

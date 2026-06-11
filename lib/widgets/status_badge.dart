@@ -10,7 +10,7 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final config = _configFor(status);
+    final config = _configFor(status, context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -29,32 +29,33 @@ class StatusBadge extends StatelessWidget {
     );
   }
 
-  static _BadgeConfig _configFor(String status) {
+  static _BadgeConfig _configFor(String status, BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return switch (status.toUpperCase()) {
       'DELIVERED' || 'COMPLETED' || 'DONE' => _BadgeConfig(
           label: 'DELIVERED',
-          bg: AppColors.deliveredBg,
-          text: AppColors.deliveredText,
+          bg: isDark ? const Color(0xFF064E3B) : AppColors.deliveredBg,
+          text: isDark ? const Color(0xFF6EE7B7) : AppColors.deliveredText,
         ),
       'OUT_FOR_DELIVERY' || 'ACTIVE' || 'IN_PROGRESS' => _BadgeConfig(
-          label: 'SEDANG DIANTAR',
-          bg: AppColors.outForDeliveryBg,
-          text: AppColors.outForDeliveryText,
+          label: 'OUT FOR DELIVERY',
+          bg: isDark ? const Color(0xFF431407) : AppColors.outForDeliveryBg,
+          text: isDark ? const Color(0xFFFB923C) : AppColors.outForDeliveryText,
         ),
       'IN_TRANSIT' || 'TRANSIT' => _BadgeConfig(
           label: 'IN TRANSIT',
-          bg: AppColors.inTransitBg,
-          text: AppColors.inTransitText,
+          bg: isDark ? const Color(0xFF451A03) : AppColors.inTransitBg,
+          text: isDark ? const Color(0xFFFBBF24) : AppColors.inTransitText,
         ),
       'QUEUED' || 'PENDING' || 'WAITING' => _BadgeConfig(
-          label: 'ANTRIAN',
-          bg: AppColors.queueBg,
-          text: AppColors.queueText,
+          label: 'QUEUED',
+          bg: isDark ? const Color(0xFF374151) : AppColors.queueBg,
+          text: isDark ? const Color(0xFF9CA3AF) : AppColors.queueText,
         ),
       _ => _BadgeConfig(
           label: status.toUpperCase(),
-          bg: AppColors.queueBg,
-          text: AppColors.queueText,
+          bg: isDark ? const Color(0xFF374151) : AppColors.queueBg,
+          text: isDark ? const Color(0xFF9CA3AF) : AppColors.queueText,
         ),
     };
   }

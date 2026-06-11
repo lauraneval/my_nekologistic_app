@@ -1,20 +1,18 @@
 import 'dart:io';
 
-import 'package:image_picker/image_picker.dart';
-
 import '../features/mobile/data/mobile_courier_repository.dart';
-import '../features/mobile/data/proof_upload_service.dart';
 import '../features/mobile/domain/mobile_models.dart';
+import 'delivery_service.dart';
 
 class ApiService {
   ApiService({
     required MobileCourierRepository repository,
-    required ProofUploadService proofUploadService,
+    required DeliveryService deliveryService,
   })  : _repository = repository,
-        _proofUpload = proofUploadService;
+        _delivery = deliveryService;
 
   final MobileCourierRepository _repository;
-  final ProofUploadService _proofUpload;
+  final DeliveryService _delivery;
 
   Future<MobileTaskBoardResponse> getTasks() => _repository.fetchTaskBoard();
 
@@ -23,16 +21,14 @@ class ApiService {
     return response.task;
   }
 
-  Future<void> submitDelivery(String id, DeliveryPayload payload) async {
-    await _repository.deliverTask(
-      id,
-      MobileDeliverRequest(
+  Future<void> submitDelivery(String id, DeliveryPayload payload) =>
+      _delivery.confirmDelivery(
+        bagId: id,
+        podImageUrl: payload.podImageUrl,
         latitude: payload.courierLatitude,
         longitude: payload.courierLongitude,
-        proofUrl: payload.podImageUrl,
-      ),
-    );
-  }
+        deliveredAt: payload.deliveredAt,
+      );
 
   Future<MobileHistoryResponse> getHistory() => _repository.fetchHistory();
 
@@ -49,11 +45,8 @@ class ApiService {
 
   Future<void> acceptTask(String id) => _repository.acceptTask(id);
 
-  Future<File?> pickProofPhoto() =>
-      _proofUpload.pickPhoto(source: ImageSource.camera);
-
   Future<String> uploadProofPhoto({required String taskId, required File file}) =>
-      _proofUpload.uploadProofPhoto(taskId: taskId, file: file);
+      _delivery.uploadPodPhoto(taskId, file);
 }
 
 class DeliveryPayload {
@@ -74,12 +67,9 @@ class DeliveryPayload {
   final DateTime deliveredAt;
 
   Map<String, dynamic> toJson() => {
-        'status': 'DELIVERED',
-        'pod_image_url': podImageUrl,
-        'courier_latitude': courierLatitude,
-        'courier_longitude': courierLongitude,
-        'target_latitude': targetLatitude,
-        'target_longitude': targetLongitude,
-        'delivered_at': deliveredAt.toIso8601String(),
+        'proof_url': podImageUrl,
+        'latitude': courierLatitude,
+        'longitude': courierLongitude,
+        'delivered_at': deliveredAt.toUtc().toIso8601String(),
       };
 }

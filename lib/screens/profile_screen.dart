@@ -32,13 +32,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.card)),
         title: Text('Logout', style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
         content: Text(
-          'Apakah kamu yakin ingin keluar dari perangkat ini?',
+          'Are you sure you want to log out of this device?',
           style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, false),
-            child: Text('Batal', style: GoogleFonts.inter(color: AppColors.textSecondary)),
+            child: Text('Cancel', style: GoogleFonts.inter(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(dialogCtx, true),
@@ -94,13 +94,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  Text('Edit Profil',
+                  Text('Edit Profile',
                       style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700,
                           color: ctx.nekoTextPrimary)),
                   const SizedBox(height: 20),
-                  _editField(ctx, 'Nama', nameCtrl, Icons.person_outline),
+                  _editField(ctx, 'Name', nameCtrl, Icons.person_outline),
                   const SizedBox(height: 12),
-                  _editField(ctx, 'No. Telepon', phoneCtrl, Icons.phone_outlined,
+                  _editField(ctx, 'Phone Number', phoneCtrl, Icons.phone_outlined,
                       keyboardType: TextInputType.phone),
                   const SizedBox(height: 12),
                   _editField(ctx, 'Email', emailCtrl, Icons.email_outlined,
@@ -128,7 +128,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               );
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                  content: Text(ok ? 'Profil berhasil diperbarui' : 'Gagal menyimpan profil'),
+                                  content: Text(ok ? 'Profile updated successfully' : 'Failed to save profile'),
                                   backgroundColor: ok ? AppColors.successGreen : AppColors.errorRed,
                                 ));
                               }
@@ -136,7 +136,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: provider.isSaving
                           ? const SizedBox(width: 20, height: 20,
                               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                          : Text('Simpan', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600)),
+                          : Text('Save', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600)),
                     ),
                   ),
                 ],
@@ -399,7 +399,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _prefRow(
             icon: Icons.security_outlined,
             title: 'Privacy & Security',
-            subtitle: 'Kelola izin aplikasi',
+            subtitle: 'Manage app permissions',
             trailing: GestureDetector(
               onTap: () => context.push('/profile/privacy'),
               child: Icon(Icons.chevron_right, color: context.nekoTextSecondary),

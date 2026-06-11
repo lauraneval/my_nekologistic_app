@@ -34,7 +34,9 @@ class _LoginScreenState extends State<LoginScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(auth.error ?? 'Login gagal. Periksa email dan password.'),
+          content: Text(
+            auth.error ?? 'Login failed. Check your email and password.',
+          ),
           backgroundColor: AppColors.errorRed,
         ),
       );
@@ -62,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 _buildLogo(),
                 const SizedBox(height: 16),
                 Text(
-                  'The Kinetic Path',
+                  'Delivery Cat',
                   style: GoogleFonts.inter(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
@@ -83,7 +85,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 2,
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.transparent, AppColors.primaryBlue, Colors.transparent],
+                      colors: [
+                        Colors.transparent,
+                        AppColors.primaryBlue,
+                        Colors.transparent,
+                      ],
                     ),
                   ),
                 ),
@@ -102,10 +108,14 @@ class _LoginScreenState extends State<LoginScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(Icons.local_shipping_rounded, color: AppColors.primaryBlue, size: 32),
+        const Icon(
+          Icons.local_shipping_rounded,
+          color: AppColors.primaryBlue,
+          size: 32,
+        ),
         const SizedBox(width: 8),
         Text(
-          'NEKO',
+          'NekoLogistic',
           style: GoogleFonts.inter(
             fontSize: 32,
             fontWeight: FontWeight.w800,
@@ -124,7 +134,11 @@ class _LoginScreenState extends State<LoginScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: const [
-          BoxShadow(color: Color(0x10000000), blurRadius: 20, offset: Offset(0, 8)),
+          BoxShadow(
+            color: Color(0x10000000),
+            blurRadius: 20,
+            offset: Offset(0, 8),
+          ),
         ],
       ),
       child: Column(
@@ -143,9 +157,16 @@ class _LoginScreenState extends State<LoginScreen> {
           TextField(
             controller: _emailCtrl,
             keyboardType: TextInputType.emailAddress,
-            style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: AppColors.textPrimary,
+            ),
             decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.alternate_email, color: AppColors.textSecondary, size: 20),
+              prefixIcon: Icon(
+                Icons.alternate_email,
+                color: AppColors.textSecondary,
+                size: 20,
+              ),
               hintText: 'courier@neko.logistics',
             ),
           ),
@@ -162,28 +183,29 @@ class _LoginScreenState extends State<LoginScreen> {
                   letterSpacing: 1.5,
                 ),
               ),
-              Text(
-                'Forgot?',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.activeOrange,
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 8),
           TextField(
             controller: _passCtrl,
             obscureText: _obscure,
-            style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: AppColors.textPrimary,
+            ),
             decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.lock_outline, color: AppColors.textSecondary, size: 20),
+              prefixIcon: const Icon(
+                Icons.lock_outline,
+                color: AppColors.textSecondary,
+                size: 20,
+              ),
               hintText: '••••••••',
               suffixIcon: GestureDetector(
                 onTap: () => setState(() => _obscure = !_obscure),
                 child: Icon(
-                  _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  _obscure
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
                   color: AppColors.textSecondary,
                   size: 20,
                 ),
@@ -209,7 +231,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
-                          color: Colors.white, strokeWidth: 2),
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
                     )
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,

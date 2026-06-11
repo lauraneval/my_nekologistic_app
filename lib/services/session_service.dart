@@ -1,11 +1,14 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:dio/dio.dart';
 
+import '../core/config/app_env.dart';
+import '../core/storage/secure_storage_service.dart';
+
+/// Tracks courier activity by updating last_login_at via the REST API.
+/// Throttled to at most one write per 5 minutes, except on explicit sign-in.
 class SessionService {
   static DateTime? _lastUpdate;
   static const _throttle = Duration(minutes: 5);
 
-  /// Update last_login_at di tabel profiles.
-  /// [force] = true untuk bypass throttle (dipakai saat sign in).
   static Future<void> updateLastSeen({bool force = false}) async {
     final now = DateTime.now().toUtc();
     if (!force &&
@@ -15,17 +18,26 @@ class SessionService {
     }
 
     try {
-      final client = Supabase.instance.client;
-      final userId = client.auth.currentUser?.id;
-      if (userId == null) return;
+      final storage = SecureStorageService();
+      final token = await storage.readAccessToken();
+      if (token == null || token.isEmpty) return;
 
       _lastUpdate = now;
-      await client
-          .from('profiles')
-          .update({'last_login_at': now.toIso8601String()})
-          .eq('user_id', userId);
+
+      await Dio().patch(
+        '${AppEnv.apiBaseUrl}/mobile/profile',
+        data: {'last_login_at': now.toIso8601String()},
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+          sendTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      );
     } catch (_) {
-      // Non-critical — jangan ganggu flow utama
+      // Non-critical — never interrupt the user flow.
     }
   }
 }

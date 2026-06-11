@@ -8,7 +8,7 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/data/auth_service.dart';
 import 'features/mobile/data/mobile_courier_api_client.dart';
 import 'features/mobile/data/mobile_courier_repository.dart';
-import 'features/mobile/data/proof_upload_service.dart';
+import 'services/delivery_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/history_provider.dart';
 import 'providers/profile_provider.dart';
@@ -48,25 +48,41 @@ class _NekoLogisticAppState extends State<NekoLogisticApp>
     _repository = MobileCourierRepository(apiClient: mobileApiClient);
     _apiService = ApiService(
       repository: _repository,
-      proofUploadService: ProofUploadService(),
+      deliveryService: DeliveryService(apiClient: _apiClient),
     );
     _authProvider = AuthProvider(authService: _authService);
     _taskProvider = TaskProvider(apiService: _apiService);
     _historyProvider = HistoryProvider(apiService: _apiService);
     _profileProvider = ProfileProvider(apiService: _apiService);
     _router = buildRouter(_authProvider);
+
+    // Start/stop polling whenever auth state changes.
+    _authProvider.addListener(_onAuthChanged);
+  }
+
+  void _onAuthChanged() {
+    if (_authProvider.isLoggedIn) {
+      _taskProvider.startPolling();
+    } else {
+      _taskProvider.stopPolling();
+    }
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       SessionService.updateLastSeen();
+      // Immediately refresh tasks when user brings the app to foreground.
+      if (_authProvider.isLoggedIn) {
+        _taskProvider.loadTasks();
+      }
     }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _authProvider.removeListener(_onAuthChanged);
     _authProvider.dispose();
     _taskProvider.dispose();
     _historyProvider.dispose();

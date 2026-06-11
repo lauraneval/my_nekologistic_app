@@ -52,7 +52,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
       body: provider.isDetailLoading && task == null
           ? const Center(child: CircularProgressIndicator(color: AppColors.primaryBlue))
           : task == null
-              ? _buildError(provider.error ?? 'Task tidak ditemukan')
+              ? _buildError(provider.error ?? 'Task not found')
               : _buildContent(task),
     );
   }
@@ -88,7 +88,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                         decoration: BoxDecoration(
-                          color: AppColors.background,
+                          color: context.nekoInputFill,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -96,7 +96,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.textSecondary,
+                            color: context.nekoTextSecondary,
                             letterSpacing: 1.0,
                           ),
                         ),
@@ -184,7 +184,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             style: GoogleFonts.inter(
               fontSize: 24,
               fontWeight: FontWeight.w800,
-              color: AppColors.textPrimary,
+              color: context.nekoTextPrimary,
             ),
           ),
         ),
@@ -198,7 +198,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     final phone = task.recipientPhone;
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: nekoCardDecoration(),
+      decoration: context.nekoCardDecor(),
       child: Row(
         children: [
           Container(
@@ -220,7 +220,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
+                    color: context.nekoTextSecondary,
                     letterSpacing: 1.2,
                   ),
                 ),
@@ -230,7 +230,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: context.nekoTextPrimary,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -251,7 +251,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     final phone = task.senderPhone;
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: nekoCardDecoration(),
+      decoration: context.nekoCardDecor(),
       child: Row(
         children: [
           Container(
@@ -273,7 +273,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
+                    color: context.nekoTextSecondary,
                     letterSpacing: 1.2,
                   ),
                 ),
@@ -283,7 +283,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: context.nekoTextPrimary,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -305,14 +305,14 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   Widget _contactRow(IconData icon, String value, {VoidCallback? onTap}) {
     final row = Row(
       children: [
-        Icon(icon, size: 14, color: AppColors.textSecondary),
+        Icon(icon, size: 14, color: context.nekoTextSecondary),
         const SizedBox(width: 6),
         Expanded(
           child: Text(
             value,
             style: GoogleFonts.inter(
               fontSize: 13,
-              color: onTap != null ? AppColors.primaryBlue : AppColors.textSecondary,
+              color: onTap != null ? AppColors.primaryBlue : context.nekoTextSecondary,
             ),
             overflow: TextOverflow.ellipsis,
           ),
@@ -332,7 +332,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
 
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: nekoCardDecoration(),
+      decoration: context.nekoCardDecor(),
       child: Row(
         children: [
           Container(
@@ -355,7 +355,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
+                    color: context.nekoTextSecondary,
                     letterSpacing: 1.2,
                   ),
                 ),
@@ -365,7 +365,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: context.nekoTextPrimary,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -405,7 +405,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           label,
           style: GoogleFonts.inter(
             fontSize: 10,
-            color: AppColors.textSecondary,
+            color: context.nekoTextSecondary,
             letterSpacing: 0.8,
           ),
         ),
@@ -415,7 +415,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           style: GoogleFonts.inter(
             fontSize: 13,
             fontWeight: FontWeight.w700,
-            color: valueColor ?? AppColors.textPrimary,
+            color: valueColor ?? context.nekoTextPrimary,
           ),
         ),
       ],
@@ -430,7 +430,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
 
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: nekoCardDecoration(),
+      decoration: context.nekoCardDecor(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -442,7 +442,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
+                  color: context.nekoTextSecondary,
                   letterSpacing: 1.2,
                 ),
               ),
@@ -456,28 +456,28 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             style: GoogleFonts.inter(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: context.nekoTextPrimary,
             ),
           ),
           const SizedBox(height: 10),
           Row(
             children: [
-              const Icon(Icons.access_time_outlined,
-                  size: 14, color: AppColors.textSecondary),
+              Icon(Icons.access_time_outlined,
+                  size: 14, color: context.nekoTextSecondary),
               const SizedBox(width: 4),
               Text(
                 'Expected by $timeStr',
                 style: GoogleFonts.inter(
-                    fontSize: 12, color: AppColors.textSecondary),
+                    fontSize: 12, color: context.nekoTextSecondary),
               ),
               const SizedBox(width: 16),
-              const Icon(Icons.dialpad_outlined,
-                  size: 14, color: AppColors.textSecondary),
+              Icon(Icons.dialpad_outlined,
+                  size: 14, color: context.nekoTextSecondary),
               const SizedBox(width: 4),
               Text(
                 'Code: ${task.accessCode ?? '-'}',
                 style: GoogleFonts.inter(
-                    fontSize: 12, color: AppColors.textSecondary),
+                    fontSize: 12, color: context.nekoTextSecondary),
               ),
             ],
           ),
@@ -527,7 +527,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             const Icon(Icons.error_outline, color: AppColors.errorRed, size: 48),
             const SizedBox(height: 12),
             Text(msg,
-                style: GoogleFonts.inter(color: AppColors.textSecondary),
+                style: GoogleFonts.inter(color: context.nekoTextSecondary),
                 textAlign: TextAlign.center),
           ],
         ),

@@ -65,7 +65,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!launched && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal membuka Google Maps.')),
+        const SnackBar(content: Text('Failed to open Google Maps.')),
       );
     }
   }
@@ -75,7 +75,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
     setState(() {
       _isSubmitting = true;
-      _progressMessage = 'Menyiapkan kamera...';
+      _progressMessage = 'Preparing camera...';
       _progressValue = 0.1;
     });
 
@@ -112,7 +112,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Pengiriman berhasil diselesaikan. Lokasi terkunci di '
+            'Delivery completed successfully. Location locked at '
             '${result.courierLatitude.toStringAsFixed(6)}, '
             '${result.courierLongitude.toStringAsFixed(6)}',
           ),
@@ -129,7 +129,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Gagal submit POD: $error')));
+      ).showSnackBar(SnackBar(content: Text('Failed to submit POD: $error')));
     } finally {
       if (mounted) {
         setState(() {
@@ -153,39 +153,39 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     }
 
     final attemptSuffix = maxAttempt > 1 && attempt > 1
-        ? ' (percobaan $attempt/$maxAttempt)'
+        ? ' (attempt $attempt/$maxAttempt)'
         : '';
 
     setState(() {
       switch (step) {
         case PodProgressStep.openingCamera:
           _progressValue = 0.1;
-          _progressMessage = 'Membuka kamera...';
+          _progressMessage = 'Opening camera...';
           break;
         case PodProgressStep.compressingPhoto:
           _progressValue = 0.2;
-          _progressMessage = 'Mengompresi foto POD...';
+          _progressMessage = 'Compressing POD photo...';
           break;
         case PodProgressStep.lockingLocation:
           _progressValue = 0.4;
-          _progressMessage = 'Mengunci lokasi kurir...';
+          _progressMessage = 'Locking courier location...';
           break;
         case PodProgressStep.validatingDistance:
           _progressValue = 0.55;
-          _progressMessage = 'Memvalidasi jarak ke tujuan...';
+          _progressMessage = 'Validating distance to destination...';
           break;
         case PodProgressStep.uploadingPhoto:
           _progressValue = 0.75;
-          _progressMessage = 'Mengupload foto POD$attemptSuffix...';
+          _progressMessage = 'Uploading POD photo$attemptSuffix...';
           break;
         case PodProgressStep.updatingStatus:
           _progressValue = 0.9;
           _progressMessage =
-              'Mengirim update status DELIVERED$attemptSuffix...';
+              'Sending DELIVERED status update$attemptSuffix...';
           break;
         case PodProgressStep.completed:
           _progressValue = 1;
-          _progressMessage = 'POD selesai diproses.';
+          _progressMessage = 'POD processing complete.';
           break;
       }
     });
@@ -196,7 +196,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Konfirmasi Foto POD'),
+          title: const Text('Confirm POD Photo'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -211,18 +211,18 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               ),
               const SizedBox(height: 12),
               const Text(
-                'Pastikan foto bukti pengiriman sudah jelas sebelum dikirim.',
+                'Make sure the proof of delivery photo is clear before submitting.',
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Ambil Ulang'),
+              child: const Text('Retake'),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Gunakan Foto Ini'),
+              child: const Text('Use This Photo'),
             ),
           ],
         );
@@ -233,7 +233,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Detail Bag')),
+      appBar: AppBar(title: const Text('Bag Detail')),
       body: RefreshIndicator(
         onRefresh: _refreshViewData,
         child: FutureBuilder<_BagDetailViewData>(
@@ -249,7 +249,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   Padding(
                     padding: const EdgeInsets.all(24),
                     child: Text(
-                      'Terjadi error saat memuat detail bag: ${snapshot.error}',
+                      'Error loading bag details: ${snapshot.error}',
                     ),
                   ),
                 ],
@@ -258,7 +258,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
             final viewData = snapshot.data;
             if (viewData == null) {
-              return const Center(child: Text('Data bag tidak ditemukan.'));
+              return const Center(child: Text('Bag data not found.'));
             }
 
             final bag = viewData.bag;
@@ -285,15 +285,15 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                           'Assigned courier: ${bag.assignedCourierId ?? '-'}',
                         ),
                         const SizedBox(height: 8),
-                        Text('Paket di bag: ${viewData.packages.length}'),
+                        Text('Packages in bag: ${viewData.packages.length}'),
                         const SizedBox(height: 12),
                         Text(
                           widget.task.receiverName != null
-                              ? 'Penerima: ${widget.task.receiverName}'
-                              : 'Penerima: -',
+                              ? 'Recipient: ${widget.task.receiverName}'
+                              : 'Recipient: -',
                         ),
                         const SizedBox(height: 4),
-                        Text(widget.task.receiverAddress ?? 'Alamat: -'),
+                        Text(widget.task.receiverAddress ?? 'Address: -'),
                       ],
                     ),
                   ),
@@ -302,11 +302,11 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 FilledButton.tonalIcon(
                   onPressed: _openMaps,
                   icon: const Icon(Icons.map_outlined),
-                  label: const Text('Arahkan ke Bag'),
+                  label: const Text('Navigate to Bag'),
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Paket di Dalam Bag',
+                  'Packages in Bag',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
@@ -343,7 +343,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 ],
                 const SizedBox(height: 8),
                 Text(
-                  'Setiap kartu paket menampilkan timeline per paket dari endpoint `/timeline`. Saat deliver berhasil, halaman ini memuat ulang data bag agar status terbaru dan penutupan bag otomatis ikut terbaca.',
+                  'Each package card shows a per-package timeline from the `/timeline` endpoint. On successful delivery, this page reloads bag data so the latest status and automatic bag closure are reflected.',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -422,14 +422,14 @@ class _PackageCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               packageItem.hasCoordinates
-                  ? 'Koordinat tujuan: ${packageItem.latitude?.toStringAsFixed(6)}, ${packageItem.longitude?.toStringAsFixed(6)}'
-                  : 'Koordinat tujuan tidak tersedia.',
+                  ? 'Destination coordinates: ${packageItem.latitude?.toStringAsFixed(6)}, ${packageItem.longitude?.toStringAsFixed(6)}'
+                  : 'Destination coordinates not available.',
             ),
             const SizedBox(height: 12),
-            Text('Timeline Paket', style: theme.textTheme.labelLarge),
+            Text('Package Timeline', style: theme.textTheme.labelLarge),
             const SizedBox(height: 8),
             if (timeline.isEmpty)
-              const Text('Belum ada event timeline untuk paket ini.')
+              const Text('No timeline events for this package.')
             else
               Column(
                 children: timeline
@@ -483,10 +483,10 @@ class _PackageCard extends StatelessWidget {
                   : const Icon(Icons.camera_alt_outlined),
               label: Text(
                 packageItem.status == 'DELIVERED'
-                    ? 'Sudah Delivered'
+                    ? 'Already Delivered'
                     : isSubmitting
-                    ? 'Memproses POD...'
-                    : 'Deliver Paket',
+                    ? 'Processing POD...'
+                    : 'Deliver Package',
               ),
             ),
             if (isSubmitting) ...[

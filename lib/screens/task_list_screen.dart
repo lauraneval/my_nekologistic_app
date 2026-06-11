@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -19,13 +22,75 @@ class TaskListScreen extends StatefulWidget {
 }
 
 class _TaskListScreenState extends State<TaskListScreen> {
+  double _computedDistanceKm = 0.0;
+  bool _isComputingDistance = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await context.read<TaskProvider>().loadTasks();
-      if (mounted) _showNewTaskDialogIfNeeded();
+      if (mounted) {
+        _showNewTaskDialogIfNeeded();
+        _computeTotalDistance(context.read<TaskProvider>().activeTasks);
+      }
     });
+  }
+
+  double _haversineKm(double lat1, double lon1, double lat2, double lon2) {
+    const r = 6371.0;
+    final phi1 = lat1 * pi / 180;
+    final phi2 = lat2 * pi / 180;
+    final dphi = (lat2 - lat1) * pi / 180;
+    final dlambda = (lon2 - lon1) * pi / 180;
+    final a =
+        sin(dphi / 2) * sin(dphi / 2) +
+        cos(phi1) * cos(phi2) * sin(dlambda / 2) * sin(dlambda / 2);
+    return r * 2 * atan2(sqrt(a), sqrt(1 - a));
+  }
+
+  Future<void> _computeTotalDistance(List<MobileTaskItem> tasks) async {
+    final targets = tasks.where((t) => t.hasCoordinates).toList();
+    if (targets.isEmpty) {
+      if (mounted) setState(() => _computedDistanceKm = 0.0);
+      return;
+    }
+
+    if (mounted) setState(() => _isComputingDistance = true);
+
+    try {
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return;
+      }
+
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
+
+      double totalKm = 0.0;
+      for (final task in targets) {
+        totalKm += _haversineKm(
+          pos.latitude,
+          pos.longitude,
+          task.latitude!,
+          task.longitude!,
+        );
+      }
+
+      if (mounted) setState(() => _computedDistanceKm = totalKm);
+    } catch (_) {
+      // GPS unavailable — keep current value
+    } finally {
+      if (mounted) setState(() => _isComputingDistance = false);
+    }
   }
 
   void _showNewTaskDialogIfNeeded() {
@@ -36,50 +101,62 @@ class _TaskListScreenState extends State<TaskListScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            const Icon(Icons.inventory_2_outlined, color: AppColors.activeOrange),
+            const Icon(
+              Icons.inventory_2_outlined,
+              color: AppColors.activeOrange,
+            ),
             const SizedBox(width: 8),
             Text(
-              'Paket Baru!',
+              'New Package!',
               style: GoogleFonts.inter(fontWeight: FontWeight.w700),
             ),
           ],
         ),
         content: Text(
           newTasks.length == 1
-              ? 'Ada 1 paket baru masuk ke antrian.\nIngin mulai mengantar sekarang?'
-              : 'Ada ${newTasks.length} paket baru masuk.\nIngin mulai mengantar sekarang?',
-          style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
+              ? '1 new package has been queued.\nWould you like to start delivering now?'
+              : '${newTasks.length} new packages have been queued.\nWould you like to start delivering now?',
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            color: dialogCtx.nekoTextSecondary,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () {
               provider.clearNewTasks();
-              Navigator.pop(context);
+              Navigator.pop(dialogCtx);
             },
-            child: Text('Nanti', style: GoogleFonts.inter(color: AppColors.textSecondary)),
+            child: Text(
+              'Later',
+              style: GoogleFonts.inter(color: dialogCtx.nekoTextSecondary),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.activeOrange,
               foregroundColor: Colors.white,
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dialogCtx);
               provider.clearNewTasks();
               for (final task in newTasks) {
                 await provider.acceptTask(task.id);
               }
-              await provider.loadTasks();
+              if (mounted) await provider.loadTasks();
             },
-            child: Text('Antar Sekarang', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+            child: Text(
+              'Deliver Now',
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),
@@ -104,7 +181,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Tidak dapat membuka dialer: $phone'),
+            content: Text('Cannot open dialer: $phone'),
             backgroundColor: AppColors.errorRed,
           ),
         );
@@ -124,7 +201,11 @@ class _TaskListScreenState extends State<TaskListScreen> {
         isLoading: tasks.isLoading && board == null,
         child: RefreshIndicator(
           color: AppColors.primaryBlue,
-          onRefresh: () => context.read<TaskProvider>().loadTasks(),
+          onRefresh: () async {
+            final taskProvider = context.read<TaskProvider>();
+            await taskProvider.loadTasks();
+            if (mounted) _computeTotalDistance(taskProvider.activeTasks);
+          },
           child: CustomScrollView(
             slivers: [
               SliverToBoxAdapter(
@@ -154,53 +235,49 @@ class _TaskListScreenState extends State<TaskListScreen> {
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (_, i) {
-                        final task = tasks.activeTasks[i];
-                        return ActiveTaskCard(
-                          task: task,
-                          onNavigate: () => _navigate(task),
-                          onCall: () => _call(task),
-                          onDetail: () => context.push('/tasks/${task.id}', extra: task),
-                        );
-                      },
-                      childCount: tasks.activeTasks.length,
-                    ),
+                    delegate: SliverChildBuilderDelegate((_, i) {
+                      final task = tasks.activeTasks[i];
+                      return ActiveTaskCard(
+                        task: task,
+                        onNavigate: () => _navigate(task),
+                        onCall: () => _call(task),
+                        onDetail: () =>
+                            context.push('/tasks/${task.id}', extra: task),
+                      );
+                    }, childCount: tasks.activeTasks.length),
                   ),
                 ),
                 if (tasks.activeTasks.isEmpty)
                   const SliverToBoxAdapter(
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20),
-                      child: _EmptyCard(text: 'Tidak ada pengiriman aktif'),
+                      child: _EmptyCard(text: 'No active deliveries'),
                     ),
                   ),
-                SliverToBoxAdapter(
-                  child: _buildMapThumbnail(),
-                ),
+                SliverToBoxAdapter(child: _buildMapThumbnail()),
                 if (tasks.queueTasks.isNotEmpty) ...[
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-                      child: _buildSectionHeader('Antrian'),
+                      child: _buildSectionHeader('Queue'),
                     ),
                   ),
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
                     sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (_, i) {
-                          final task = tasks.queueTasks[i];
-                          return QueueTaskCard(
-                            task: task,
-                            onDetail: () => context.push('/tasks/${task.id}', extra: task),
-                            onCall: (task.recipientPhone != null && task.recipientPhone != '-')
-                                ? () => _call(task)
-                                : null,
-                          );
-                        },
-                        childCount: tasks.queueTasks.length,
-                      ),
+                      delegate: SliverChildBuilderDelegate((_, i) {
+                        final task = tasks.queueTasks[i];
+                        return QueueTaskCard(
+                          task: task,
+                          onDetail: () =>
+                              context.push('/tasks/${task.id}', extra: task),
+                          onCall:
+                              (task.recipientPhone != null &&
+                                  task.recipientPhone != '-')
+                              ? () => _call(task)
+                              : null,
+                        );
+                      }, childCount: tasks.queueTasks.length),
                     ),
                   ),
                 ] else
@@ -216,10 +293,14 @@ class _TaskListScreenState extends State<TaskListScreen> {
   Widget _buildTopBar(BuildContext context, AuthProvider auth) {
     return Row(
       children: [
-        const Icon(Icons.local_shipping_rounded, color: AppColors.primaryBlue, size: 22),
+        const Icon(
+          Icons.local_shipping_rounded,
+          color: AppColors.primaryBlue,
+          size: 22,
+        ),
         const SizedBox(width: 6),
         Text(
-          'NEKO',
+          'NekoLogistic',
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.w800,
@@ -231,23 +312,31 @@ class _TaskListScreenState extends State<TaskListScreen> {
     );
   }
 
-  Widget _buildGreeting(BuildContext context, AuthProvider auth, MobileTaskBoardResponse? board) {
-    final total = (board?.summary.activeTasks ?? 0) + (board?.summary.queueTasks ?? 0);
+  Widget _buildGreeting(
+    BuildContext context,
+    AuthProvider auth,
+    MobileTaskBoardResponse? board,
+  ) {
+    final total =
+        (board?.summary.activeTasks ?? 0) + (board?.summary.queueTasks ?? 0);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Semangat pagi, Kurir!',
+          'Welcome back, Courier!',
           style: GoogleFonts.inter(
             fontSize: 20,
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: context.nekoTextPrimary,
           ),
         ),
         const SizedBox(height: 4),
         RichText(
           text: TextSpan(
-            style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: context.nekoTextSecondary,
+            ),
             children: [
               const TextSpan(text: 'You have '),
               TextSpan(
@@ -278,16 +367,29 @@ class _TaskListScreenState extends State<TaskListScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.route_outlined, color: Colors.white70, size: 22),
-                const SizedBox(height: 8),
-                Text(
-                  '${summary?.totalDistanceKm.toStringAsFixed(1) ?? '0.0'} km',
-                  style: GoogleFonts.inter(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
+                const Icon(
+                  Icons.route_outlined,
+                  color: Colors.white70,
+                  size: 22,
                 ),
+                const SizedBox(height: 8),
+                _isComputingDistance
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white70,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(
+                        '${_computedDistanceKm.toStringAsFixed(1)} km',
+                        style: GoogleFonts.inter(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
                 const SizedBox(height: 4),
                 Text(
                   'TOTAL DISTANCE TODAY',
@@ -306,7 +408,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
         Expanded(
           child: Container(
             padding: const EdgeInsets.all(16),
-            decoration: nekoCardDecoration(),
+            decoration: context.nekoCardDecor(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -324,7 +426,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
+                    color: context.nekoTextSecondary,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -345,10 +447,14 @@ class _TaskListScreenState extends State<TaskListScreen> {
           style: GoogleFonts.inter(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: context.nekoTextPrimary,
           ),
         ),
-        const Icon(Icons.filter_list_rounded, color: AppColors.textSecondary, size: 20),
+        Icon(
+          Icons.filter_list_rounded,
+          color: context.nekoTextSecondary,
+          size: 20,
+        ),
       ],
     );
   }
@@ -364,7 +470,11 @@ class _TaskListScreenState extends State<TaskListScreen> {
       child: Stack(
         children: [
           Center(
-            child: Icon(Icons.map_outlined, size: 60, color: Colors.white.withValues(alpha: 0.6)),
+            child: Icon(
+              Icons.map_outlined,
+              size: 60,
+              color: Colors.white.withValues(alpha: 0.6),
+            ),
           ),
           Positioned(
             bottom: 12,
@@ -409,9 +519,11 @@ class _TaskListScreenState extends State<TaskListScreen> {
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Center(
-        child: Text(msg,
-            style: GoogleFonts.inter(color: AppColors.errorRed, fontSize: 14),
-            textAlign: TextAlign.center),
+        child: Text(
+          msg,
+          style: GoogleFonts.inter(color: AppColors.errorRed, fontSize: 14),
+          textAlign: TextAlign.center,
+        ),
       ),
     );
   }
@@ -425,11 +537,14 @@ class _EmptyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: nekoCardDecoration(),
+      decoration: context.nekoCardDecor(),
       child: Center(
         child: Text(
           text,
-          style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            color: context.nekoTextSecondary,
+          ),
         ),
       ),
     );

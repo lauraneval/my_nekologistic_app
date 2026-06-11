@@ -56,7 +56,7 @@ class _GeofenceValidationScreenState extends State<GeofenceValidationScreen>
       if (!serviceEnabled) {
         setState(() {
           _state = _GeoState.error;
-          _errorMsg = 'Layanan GPS tidak aktif. Aktifkan GPS terlebih dahulu.';
+          _errorMsg = 'GPS service is off. Please enable GPS first.';
         });
         return;
       }
@@ -69,7 +69,7 @@ class _GeofenceValidationScreenState extends State<GeofenceValidationScreen>
           permission == LocationPermission.denied) {
         setState(() {
           _state = _GeoState.error;
-          _errorMsg = 'Izin lokasi ditolak. Aktifkan dari pengaturan.';
+          _errorMsg = 'Location permission denied. Enable it in settings.';
         });
         return;
       }
@@ -102,7 +102,7 @@ class _GeofenceValidationScreenState extends State<GeofenceValidationScreen>
     } catch (e) {
       setState(() {
         _state = _GeoState.error;
-        _errorMsg = 'Gagal mendapatkan lokasi: ${e.toString()}';
+        _errorMsg = 'Failed to get location: ${e.toString()}';
       });
     }
   }
@@ -134,7 +134,7 @@ class _GeofenceValidationScreenState extends State<GeofenceValidationScreen>
                   width: 38,
                   height: 38,
                   decoration: BoxDecoration(
-                    color: AppColors.background,
+                    color: context.nekoInputFill,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.arrow_back, size: 20),
@@ -153,7 +153,7 @@ class _GeofenceValidationScreenState extends State<GeofenceValidationScreen>
               Text(
                 'Tracking Route ID: #${task?.bagCode ?? task?.title ?? widget.taskId}',
                 style: GoogleFonts.inter(
-                    fontSize: 14, color: AppColors.textSecondary),
+                    fontSize: 14, color: context.nekoTextSecondary),
               ),
               const SizedBox(height: 24),
               _buildGpsCard(),
@@ -174,7 +174,7 @@ class _GeofenceValidationScreenState extends State<GeofenceValidationScreen>
   Widget _buildGpsCard() {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: nekoCardDecoration(),
+      decoration: context.nekoCardDecor(),
       child: Column(
         children: [
           Row(
@@ -208,7 +208,7 @@ class _GeofenceValidationScreenState extends State<GeofenceValidationScreen>
                     'SYNCING COORDINATES WITH ORBITAL SATELLITE',
                     style: GoogleFonts.inter(
                       fontSize: 10,
-                      color: AppColors.textSecondary,
+                      color: context.nekoTextSecondary,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -280,14 +280,14 @@ class _GeofenceValidationScreenState extends State<GeofenceValidationScreen>
                   style: GoogleFonts.inter(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: context.nekoTextPrimary,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   'The current GPS coordinates place the courier ${km}km away from the designated drop-off point. Please move closer to the pin to proceed.',
                   style: GoogleFonts.inter(
-                      fontSize: 13, color: AppColors.textSecondary),
+                      fontSize: 13, color: context.nekoTextSecondary),
                 ),
                 const SizedBox(height: 14),
                 Container(
@@ -309,7 +309,7 @@ class _GeofenceValidationScreenState extends State<GeofenceValidationScreen>
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.textSecondary,
+                          color: context.nekoTextSecondary,
                           letterSpacing: 1.0,
                         ),
                       ),
@@ -412,7 +412,7 @@ class _GeofenceValidationScreenState extends State<GeofenceValidationScreen>
       child: Column(
         children: [
           Text(
-            _errorMsg ?? 'Terjadi kesalahan',
+            _errorMsg ?? 'An error occurred',
             style: GoogleFonts.inter(
                 fontSize: 13, color: AppColors.errorRed),
           ),
@@ -430,7 +430,7 @@ class _GeofenceValidationScreenState extends State<GeofenceValidationScreen>
                 ),
                 elevation: 0,
               ),
-              child: Text('Coba Lagi',
+              child: Text('Try Again',
                   style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
             ),
           ),

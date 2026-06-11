@@ -25,40 +25,40 @@ class MobileApiException implements Exception {
     if (statusCode == 401) {
       return MobileApiException(
         statusCode: 401,
-        message: backendMessage ?? 'Sesi login tidak valid. Silakan login ulang.',
+        message: backendMessage ?? 'Login session is invalid. Please log in again.',
       );
     }
 
     if (statusCode == 403) {
       final message = operation == 'deliver'
-          ? 'Kurir berada di luar delivery radius.'
-          : backendMessage ?? 'Akses ditolak oleh server.';
+          ? 'Courier is outside the delivery radius.'
+          : backendMessage ?? 'Access denied by server.';
       return MobileApiException(statusCode: 403, message: message);
     }
 
     if (statusCode == 404) {
       return MobileApiException(
         statusCode: 404,
-        message: backendMessage ?? 'Data tidak ditemukan.',
+        message: backendMessage ?? 'Data not found.',
       );
     }
 
     if (statusCode == 500) {
       return MobileApiException(
         statusCode: 500,
-        message: backendMessage ?? 'Terjadi kesalahan server.',
+        message: backendMessage ?? 'Server error occurred.',
       );
     }
 
     if (error.type == DioExceptionType.connectionTimeout ||
         error.type == DioExceptionType.receiveTimeout ||
         error.type == DioExceptionType.sendTimeout) {
-      return MobileApiException(statusCode: statusCode, message: 'Koneksi ke server timeout.');
+      return MobileApiException(statusCode: statusCode, message: 'Server connection timed out.');
     }
 
     return MobileApiException(
       statusCode: statusCode,
-      message: backendMessage ?? 'Gagal terhubung ke backend.',
+      message: backendMessage ?? 'Failed to connect to backend.',
     );
   }
 

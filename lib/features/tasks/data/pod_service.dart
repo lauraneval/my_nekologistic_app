@@ -9,6 +9,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../bootstrap/app_bootstrap.dart';
 import '../../../core/config/app_env.dart';
+import '../../../core/storage/secure_storage_service.dart';
+import '../../../models/user_model.dart';
 import '../../../core/network/api_client.dart';
 import 'activity_log_queue_service.dart';
 import '../domain/courier_bag_models.dart';
@@ -70,7 +72,7 @@ class PodService {
     );
 
     if (rawPhoto == null) {
-      throw PodFailure('Foto POD dibatalkan oleh pengguna.');
+      throw PodFailure('POD photo cancelled by user.');
     }
 
     onProgress?.call(PodProgressStep.compressingPhoto);
@@ -181,7 +183,7 @@ class PodService {
   Future<Position> _lockCourierPosition() async {
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      throw PodFailure('GPS tidak aktif. Aktifkan lokasi terlebih dahulu.');
+      throw PodFailure('GPS is not active. Please enable location first.');
     }
 
     var permission = await Geolocator.checkPermission();
@@ -191,7 +193,7 @@ class PodService {
 
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
-      throw PodFailure('Izin lokasi dibutuhkan untuk validasi pengiriman.');
+      throw PodFailure('Location permission is required for delivery validation.');
     }
 
     return Geolocator.getCurrentPosition(
@@ -224,6 +226,12 @@ class PodService {
     required CourierBagPackage packageItem,
     required File imageFile,
   }) async {
+    // Re-authenticate Supabase client using stored tokens.
+    // This is required because auth was migrated to custom REST — the Supabase
+    // client no longer holds an auth session, causing Storage RLS to see
+    // auth.role() = 'anon' instead of 'authenticated'.
+    await _syncSupabaseSession();
+
     final storage = Supabase.instance.client.storage.from(AppEnv.podBucket);
     final fileName = 'pod_${DateTime.now().millisecondsSinceEpoch}.jpg';
     final path = 'courier/${packageItem.id}/$fileName';
@@ -235,6 +243,19 @@ class PodService {
     );
 
     return storage.getPublicUrl(path);
+  }
+
+  Future<void> _syncSupabaseSession() async {
+    try {
+      if (Supabase.instance.client.auth.currentSession != null) return;
+      final rt = await SecureStorageService().readRefreshToken();
+      if (rt == null || rt.isEmpty) return;
+      await Supabase.instance.client.auth.setSession(rt);
+    } catch (_) {
+      // If tokens aren't Supabase-issued, this will fail — that's fine.
+      // In that case, change the Supabase Storage RLS policy to remove
+      // the auth.role() = 'authenticated' check on the proof-of-delivery bucket.
+    }
   }
 
   void _validateDistance({
@@ -254,9 +275,9 @@ class PodService {
 
     if (distanceMeters > AppEnv.maxDeliveryDistanceMeters) {
       throw PodFailure(
-        'Posisi kamu terlalu jauh dari titik tujuan '
+        'You are too far from the destination '
         '(${distanceMeters.toStringAsFixed(0)} m). '
-        'Batas maksimal ${AppEnv.maxDeliveryDistanceMeters} m.',
+        'Maximum allowed is ${AppEnv.maxDeliveryDistanceMeters} m.',
       );
     }
   }
@@ -280,7 +301,7 @@ class PodService {
       }
     }
 
-    throw PodFailure('Operasi gagal setelah beberapa percobaan.');
+    throw PodFailure('Operation failed after several attempts.');
   }
 
   String _mapErrorMessage(Object error) {
@@ -289,27 +310,27 @@ class PodService {
       if (error.type == DioExceptionType.connectionTimeout ||
           error.type == DioExceptionType.receiveTimeout ||
           error.type == DioExceptionType.sendTimeout) {
-        return 'Koneksi ke server timeout. Coba lagi.';
+        return 'Server connection timed out. Please try again.';
       }
       if (statusCode == 401 || statusCode == 403) {
-        return 'Sesi login tidak valid. Silakan login ulang.';
+        return 'Login session is invalid. Please log in again.';
       }
       if (statusCode != null) {
-        return 'Server mengembalikan error ($statusCode).';
+        return 'Server returned an error ($statusCode).';
       }
-      return 'Gagal terhubung ke backend pengiriman.';
+      return 'Failed to connect to delivery backend.';
     }
 
     if (error is SocketException) {
-      return 'Tidak ada koneksi internet.';
+      return 'No internet connection.';
     }
 
     final message = error.toString();
     if (message.contains('StorageException')) {
-      return 'Upload foto ke Supabase Storage gagal.';
+      return 'Photo upload to Supabase Storage failed.';
     }
 
-    return 'Terjadi kesalahan saat memproses POD.';
+    return 'An error occurred while processing POD.';
   }
 
   Future<void> _tryLogActivity({
@@ -321,7 +342,7 @@ class PodService {
       return;
     }
 
-    final payload = _buildActivityPayload(
+    final payload = await _buildActivityPayload(
       action: action,
       packageItem: packageItem,
       metadata: metadata,
@@ -342,12 +363,16 @@ class PodService {
     }
   }
 
-  Map<String, dynamic> _buildActivityPayload({
+  Future<Map<String, dynamic>> _buildActivityPayload({
     required String action,
     required CourierBagPackage packageItem,
     Map<String, dynamic>? metadata,
-  }) {
-    final actorId = Supabase.instance.client.auth.currentUser?.id;
+  }) async {
+    String? actorId;
+    try {
+      final userJson = await SecureStorageService().readUser();
+      if (userJson != null) actorId = UserModel.fromRawJson(userJson).id;
+    } catch (_) {}
     return {
       'actor_id': actorId,
       'action': action,

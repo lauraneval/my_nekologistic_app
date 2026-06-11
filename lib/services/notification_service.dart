@@ -22,15 +22,15 @@ class NotificationService {
     const android = AndroidNotificationDetails(
       'neko_tasks',
       'Task Notifications',
-      channelDescription: 'Notifikasi paket pengiriman baru',
+      channelDescription: 'New delivery package notifications',
       importance: Importance.high,
       priority: Priority.high,
       icon: '@mipmap/ic_launcher',
     );
     await _plugin.show(
       1,
-      'Paket Baru Masuk!',
-      count == 1 ? 'Ada 1 paket baru menunggu pengantaran.' : 'Ada $count paket baru menunggu pengantaran.',
+      'New Package!',
+      count == 1 ? '1 new package is waiting for delivery.' : '$count new packages are waiting for delivery.',
       const NotificationDetails(android: android),
     );
   }

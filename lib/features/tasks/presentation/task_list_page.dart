@@ -55,7 +55,7 @@ class _TaskListPageState extends State<TaskListPage> {
     final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!launched && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal membuka Google Maps.')),
+        const SnackBar(content: Text('Failed to open Google Maps.')),
       );
     }
   }
@@ -84,7 +84,7 @@ class _TaskListPageState extends State<TaskListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tugas Kurir'),
+        title: const Text('Courier Tasks'),
         actions: [
           IconButton(
             onPressed: _signOut,
@@ -108,7 +108,7 @@ class _TaskListPageState extends State<TaskListPage> {
                   Padding(
                     padding: const EdgeInsets.all(24),
                     child: Text(
-                      'Terjadi error saat mengambil data tugas: ${snapshot.error}',
+                      'Error loading task data: ${snapshot.error}',
                     ),
                   ),
                 ],
@@ -124,7 +124,7 @@ class _TaskListPageState extends State<TaskListPage> {
                   SizedBox(height: 12),
                   Center(
                     child: Text(
-                      'Belum ada paket untuk diantar.',
+                      'No packages to deliver.',
                       style: TextStyle(fontSize: 16),
                     ),
                   ),
@@ -154,10 +154,10 @@ class _TaskListPageState extends State<TaskListPage> {
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                         const SizedBox(height: 6),
-                        Text('${task.packageCount} paket • ${task.status}'),
+                        Text('${task.packageCount} packages • ${task.status}'),
                         if (task.receiverName != null) ...[
                           const SizedBox(height: 6),
-                          Text('Penerima: ${task.receiverName}'),
+                          Text('Recipient: ${task.receiverName}'),
                         ],
                         if (task.receiverAddress != null) ...[
                           const SizedBox(height: 4),
@@ -169,7 +169,7 @@ class _TaskListPageState extends State<TaskListPage> {
                             FilledButton.tonalIcon(
                               onPressed: () => _openMaps(task),
                               icon: const Icon(Icons.map_outlined),
-                              label: const Text('Arahkan'),
+                              label: const Text('Navigate'),
                             ),
                             const SizedBox(width: 8),
                             OutlinedButton(

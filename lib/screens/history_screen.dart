@@ -50,14 +50,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 28,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary,
+                          color: context.nekoTextPrimary,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Tracking your completed logistical movements.',
                         style: GoogleFonts.inter(
-                            fontSize: 14, color: AppColors.textSecondary),
+                            fontSize: 14, color: context.nekoTextSecondary),
                       ),
                       const SizedBox(height: 20),
                       _buildTabRow(provider),
@@ -96,9 +96,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     padding: const EdgeInsets.all(32),
                     child: Center(
                       child: Text(
-                        'Belum ada riwayat pengiriman',
+                        'No delivery history yet',
                         style: GoogleFonts.inter(
-                            fontSize: 14, color: AppColors.textSecondary),
+                            fontSize: 14, color: context.nekoTextSecondary),
                       ),
                     ),
                   ),
@@ -138,7 +138,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 color: isActive ? AppColors.primaryBlue : Colors.transparent,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: isActive ? AppColors.primaryBlue : AppColors.divider,
+                  color: isActive ? AppColors.primaryBlue : context.nekoDivider,
                 ),
               ),
               child: Text(
@@ -147,7 +147,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   fontSize: 13,
                   fontWeight:
                       isActive ? FontWeight.w700 : FontWeight.w500,
-                  color: isActive ? Colors.white : AppColors.textSecondary,
+                  color: isActive ? Colors.white : context.nekoTextSecondary,
                 ),
               ),
             ),
@@ -160,7 +160,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget _buildMonthlyCard(HistoryProvider provider) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: nekoCardDecoration(),
+      decoration: context.nekoCardDecor(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -169,7 +169,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             style: GoogleFonts.inter(
               fontSize: 10,
               fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
+              color: context.nekoTextSecondary,
               letterSpacing: 1.2,
             ),
           ),
@@ -182,7 +182,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 36,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
+                  color: context.nekoTextPrimary,
                 ),
               ),
               const SizedBox(width: 8),
@@ -250,18 +250,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
-      decoration: nekoCardDecoration(),
+      decoration: context.nekoCardDecor(),
       child: Row(
         children: [
           Container(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.background,
+              color: context.nekoInputFill,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.inventory_2_outlined,
-                color: AppColors.textSecondary, size: 20),
+            child: Icon(Icons.inventory_2_outlined,
+                color: context.nekoTextSecondary, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -273,14 +273,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: context.nekoTextPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   dateStr,
                   style: GoogleFonts.inter(
-                      fontSize: 12, color: AppColors.textSecondary),
+                      fontSize: 12, color: context.nekoTextSecondary),
                 ),
               ],
             ),
@@ -293,7 +293,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               Text(
                 'ID: ${(item.bagCode ?? item.title).length > 10 ? (item.bagCode ?? item.title).substring(0, 10) : (item.bagCode ?? item.title)}',
                 style: GoogleFonts.inter(
-                    fontSize: 11, color: AppColors.textSecondary),
+                    fontSize: 11, color: context.nekoTextSecondary),
               ),
             ],
           ),
@@ -306,7 +306,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.divider, style: BorderStyle.solid),
+        border: Border.all(color: context.nekoDivider, style: BorderStyle.solid),
         borderRadius: BorderRadius.circular(AppRadius.button),
       ),
       child: Center(
@@ -315,7 +315,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           style: GoogleFonts.inter(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: AppColors.textSecondary),
+              color: context.nekoTextSecondary),
         ),
       ),
     );

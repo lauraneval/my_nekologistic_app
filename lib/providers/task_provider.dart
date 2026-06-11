@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -9,6 +11,9 @@ class TaskProvider extends ChangeNotifier {
   TaskProvider({required ApiService apiService}) : _api = apiService;
 
   final ApiService _api;
+
+  Timer? _pollingTimer;
+  static const _pollingInterval = Duration(seconds: 60);
 
   MobileTaskBoardResponse? _board;
   MobileTaskItem? _currentTask;
@@ -86,6 +91,23 @@ class TaskProvider extends ChangeNotifier {
       _isDetailLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Starts auto-polling every 60 seconds. Safe to call multiple times.
+  void startPolling() {
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer.periodic(_pollingInterval, (_) => loadTasks());
+  }
+
+  void stopPolling() {
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
   }
 
   void clearError() {

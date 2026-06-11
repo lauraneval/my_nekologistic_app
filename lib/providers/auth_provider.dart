@@ -4,6 +4,13 @@ import '../features/auth/data/auth_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   AuthProvider({required AuthService authService}) : _authService = authService {
+    // When AuthService's refresh fails it fires this callback so GoRouter
+    // immediately redirects to /login without needing a separate mechanism.
+    _authService.onSessionExpired = () {
+      _isLoggedIn = false;
+      _isLoading = false;
+      notifyListeners();
+    };
     checkAuth();
   }
 
@@ -17,12 +24,13 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
+  /// Called on app start — loads persisted tokens and validates the session.
   Future<void> checkAuth() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
-
     try {
+      await _authService.initialize();
       _isLoggedIn = _authService.hasSession;
     } catch (_) {
       _isLoggedIn = false;
@@ -36,7 +44,6 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
-
     try {
       await _authService.signInWithEmail(email: email, password: password);
       _isLoggedIn = true;

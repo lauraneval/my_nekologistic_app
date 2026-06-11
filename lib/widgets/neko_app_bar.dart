@@ -20,10 +20,14 @@ class NekoAppBar extends StatelessWidget implements PreferredSizeWidget {
       automaticallyImplyLeading: false,
       title: Row(
         children: [
-          const Icon(Icons.local_shipping_rounded, color: AppColors.primaryBlue, size: 22),
+          const Icon(
+            Icons.local_shipping_rounded,
+            color: AppColors.primaryBlue,
+            size: 22,
+          ),
           const SizedBox(width: 6),
           Text(
-            'NEKO',
+            'NekoLogistic',
             style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.w800,
@@ -39,7 +43,12 @@ class NekoAppBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class NekoIconButton extends StatelessWidget {
-  const NekoIconButton({super.key, required this.icon, this.onTap, this.badge = false});
+  const NekoIconButton({
+    super.key,
+    required this.icon,
+    this.onTap,
+    this.badge = false,
+  });
 
   final IconData icon;
   final VoidCallback? onTap;

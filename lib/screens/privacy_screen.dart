@@ -19,29 +19,29 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
     _PermissionInfo(
       permission: Permission.camera,
       icon: Icons.camera_alt_outlined,
-      title: 'Kamera',
-      subtitle: 'Digunakan untuk foto bukti pengiriman (POD)',
+      title: 'Camera',
+      subtitle: 'Used for proof of delivery (POD) photos',
       color: AppColors.activeOrange,
     ),
     _PermissionInfo(
       permission: Permission.locationWhenInUse,
       icon: Icons.location_on_outlined,
-      title: 'Lokasi (GPS)',
-      subtitle: 'Digunakan untuk validasi jarak pengiriman',
+      title: 'Location (GPS)',
+      subtitle: 'Used for delivery distance validation',
       color: AppColors.primaryBlue,
     ),
     _PermissionInfo(
       permission: Permission.phone,
       icon: Icons.phone_outlined,
-      title: 'Telepon',
-      subtitle: 'Digunakan untuk menghubungi penerima',
+      title: 'Phone',
+      subtitle: 'Used to contact the recipient',
       color: AppColors.successGreen,
     ),
     _PermissionInfo(
       permission: Permission.storage,
       icon: Icons.folder_outlined,
-      title: 'Penyimpanan',
-      subtitle: 'Digunakan untuk menyimpan foto pengiriman',
+      title: 'Storage',
+      subtitle: 'Used to save delivery photos',
       color: const Color(0xFF8B5CF6),
     ),
   ];
@@ -71,15 +71,15 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
         context: context,
         builder: (_) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text('Izin Diblokir', style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
+          title: Text('Permission Blocked', style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
           content: Text(
-            'Izin "${info.title}" diblokir. Buka pengaturan aplikasi untuk mengaktifkannya.',
+            'The "${info.title}" permission is blocked. Open app settings to enable it.',
             style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Batal', style: GoogleFonts.inter(color: AppColors.textSecondary)),
+              child: Text('Cancel', style: GoogleFonts.inter(color: AppColors.textSecondary)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -89,7 +89,7 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               onPressed: () { Navigator.pop(context); openAppSettings(); },
-              child: Text('Buka Pengaturan', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+              child: Text('Open Settings', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
             ),
           ],
         ),
@@ -125,7 +125,7 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
               padding: const EdgeInsets.all(20),
               children: [
                 Text(
-                  'Kelola izin yang dibutuhkan aplikasi NekoLogistic untuk berjalan dengan baik.',
+                  'Manage the permissions required for NekoLogistic to work properly.',
                   style: GoogleFonts.inter(fontSize: 13, color: context.nekoTextSecondary),
                 ),
                 const SizedBox(height: 20),
@@ -134,7 +134,7 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
                 OutlinedButton.icon(
                   onPressed: _checkPermissions,
                   icon: const Icon(Icons.refresh_outlined),
-                  label: Text('Cek Ulang Semua Izin',
+                  label: Text('Re-check All Permissions',
                       style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.primaryBlue,
@@ -194,7 +194,7 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 backgroundColor: AppColors.primaryBlue.withValues(alpha: 0.08),
               ),
-              child: Text(isPermanent ? 'Pengaturan' : 'Izinkan',
+              child: Text(isPermanent ? 'Settings' : 'Allow',
                   style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600)),
             ),
         ],
@@ -213,10 +213,10 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color, bg) = isGranted
-        ? ('Diizinkan', AppColors.deliveredText, AppColors.deliveredBg)
+        ? ('Allowed', AppColors.deliveredText, AppColors.deliveredBg)
         : isPermanent
-            ? ('Diblokir', AppColors.errorRed, const Color(0xFFFEE2E2))
-            : ('Belum Diizinkan', AppColors.inTransitText, AppColors.inTransitBg);
+            ? ('Blocked', AppColors.errorRed, const Color(0xFFFEE2E2))
+            : ('Not Allowed', AppColors.inTransitText, AppColors.inTransitBg);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
