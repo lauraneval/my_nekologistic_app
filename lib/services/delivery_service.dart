@@ -45,7 +45,7 @@ class DeliveryService {
       });
 
       final response = await _api.post(
-        '/api/mobile/tasks/$bagId/deliver',
+        '/mobile/tasks/$bagId/deliver',
         data: formData,
       );
 
@@ -78,7 +78,7 @@ class DeliveryService {
   }) async {
     try {
       final response = await _api.put(
-        '/api/mobile/tasks/$bagId/deliver',
+        '/mobile/tasks/$bagId/deliver',
         data: {
           'proof_url': podImageUrl,
           'latitude': latitude,
@@ -117,9 +117,12 @@ class DeliveryService {
 
   bool _isOutsideRadius(DioException e) {
     if (e.response?.statusCode != 403) return false;
-    final msg =
-        (e.response?.data?['message'] as String? ?? '').toLowerCase();
-    return msg.contains('radius') || msg.contains('zone');
+    final data = e.response?.data;
+    if (data is Map<String, dynamic>) {
+      final msg = (data['message'] ?? data['error'] ?? '').toString().toLowerCase();
+      return msg.contains('radius') || msg.contains('zone');
+    }
+    return false;
   }
 
   String _mapUploadError(DioException e) {
@@ -129,7 +132,11 @@ class DeliveryService {
       return 'Connection timed out. Check your internet connection.';
     }
     final code = e.response?.statusCode;
-    final msg = e.response?.data?['message']?.toString() ?? '';
+    final data = e.response?.data;
+    final msg = data is Map<String, dynamic>
+        ? (data['message'] ?? data['error'] ?? '').toString()
+        : '';
+
     switch (code) {
       case 400:
         if (msg.contains('2 MB')) return 'Photo size exceeds 2 MB.';
@@ -154,7 +161,11 @@ class DeliveryService {
       return 'Connection timed out. Check your internet connection.';
     }
     final code = e.response?.statusCode;
-    final msg = e.response?.data?['message']?.toString() ?? '';
+    final data = e.response?.data;
+    final msg = data is Map<String, dynamic>
+        ? (data['message'] ?? data['error'] ?? '').toString()
+        : '';
+
     switch (code) {
       case 400:
         return msg.isNotEmpty ? msg : 'Invalid delivery data.';

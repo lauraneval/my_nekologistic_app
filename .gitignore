@@ -10,6 +10,7 @@
 .history
 .svn/
 .swiftpm/
+RECREATION_GUIDE.md
 migrate_working_dir/
 
 # IntelliJ related
@@ -49,3 +50,5 @@ MOBILE_COURIER_API_CONTRACT.md
 FLUTTER_COURIER_IMPLEMENTATION.md
 image/
 docs/
+
+.env
