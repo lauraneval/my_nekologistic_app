@@ -1,6 +1,7 @@
 class MobileTaskItem {
   MobileTaskItem({
     required this.id,
+    required this.packageId,
     required this.title,
     required this.status,
     required this.weightKg,
@@ -28,6 +29,10 @@ class MobileTaskItem {
   });
 
   final String id;
+  /// Non-null only when this card represents one package inside a multi-package bag.
+  /// The bag's own [id] is kept for navigation; [packageId] is sent to the server
+  /// on delivery so only this specific package is marked delivered.
+  final String? packageId;
   final String title;
   final String status;
   final double? weightKg;
@@ -69,6 +74,7 @@ class MobileTaskItem {
     final raw = Map<String, dynamic>.from(json);
     return MobileTaskItem(
       id: _readString(raw, ['id', 'task_id', 'uuid']),
+      packageId: _readNullableString(raw, ['package_id', 'packageId']),
       title: _readString(raw, ['title', 'task_name', 'resi', 'reference']),
       status: _readString(raw, ['status', 'task_status', 'delivery_status']),
       weightKg: _readDouble(raw, ['weight', 'weight_kg', 'package_weight']),
@@ -440,19 +446,33 @@ List<MobileTaskItem> _readAnyTasks(Map<String, dynamic> json) {
       .toList(growable: false);
 }
 
-/// Jika bag punya packages[] lebih dari 1, expand jadi satu item per package.
-/// Package-specific data (receiver, resi, berat, dimensi) override bag-level.
-/// bag_code dan id tetap dari bag agar navigasi ke task detail tetap benar.
+/// If a bag has multiple packages, expand into one MobileTaskItem per package.
+/// Package-specific data (receiver, resi, weight, dimensions) overrides bag-level.
+/// bag id is kept as [id] so navigation to task detail still works.
+/// The individual package's own id is stored as [packageId] so that POD submission
+/// can target only that package rather than the whole bag.
 Iterable<MobileTaskItem> _expandBagPackages(Map<String, dynamic> bagJson) {
   final packages = bagJson['packages'];
   if (packages is List<dynamic> && packages.length > 1) {
     return packages.whereType<Map<String, dynamic>>().map((pkg) {
+      final pkgId = pkg['id']?.toString() ?? pkg['package_id']?.toString();
       final merged = <String, dynamic>{
         ...bagJson,
         ...pkg,
-        'id': bagJson['id'],
+        // Bag-level fields that must not be overridden by per-package values:
+        'id': bagJson['id'],           // bag id kept for navigation
+        'package_id': pkgId,           // real per-package id for POD targeting
         'bag_code': bagJson['bag_code'] ?? bagJson['bagCode'],
         'status': pkg['status'] ?? bagJson['status'],
+        // Delivery coordinates belong to the BAG (all packages in one bag share
+        // the same drop-off point). Per-package lat/lng (if present) are typically
+        // pickup points and must not replace the bag's delivery destination.
+        'latitude': bagJson['latitude'],
+        'longitude': bagJson['longitude'],
+        'destination_latitude': bagJson['destination_latitude'],
+        'destination_longitude': bagJson['destination_longitude'],
+        'lat': bagJson['lat'],
+        'lng': bagJson['lng'],
       };
       return MobileTaskItem.fromJson(merged);
     });

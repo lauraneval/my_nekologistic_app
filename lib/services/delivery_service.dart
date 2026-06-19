@@ -74,6 +74,7 @@ class DeliveryService {
     required String podImageUrl,
     required double latitude,
     required double longitude,
+    String? packageId,
     DateTime? deliveredAt,
   }) async {
     try {
@@ -83,6 +84,7 @@ class DeliveryService {
           'proof_url': podImageUrl,
           'latitude': latitude,
           'longitude': longitude,
+          'package_id': packageId,
           if (deliveredAt != null)
             'delivered_at': deliveredAt.toUtc().toIso8601String(),
         },

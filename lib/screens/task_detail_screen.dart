@@ -23,9 +23,14 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TaskProvider>().loadTaskDetail(widget.taskId);
-    });
+    // When a specific task is already provided (navigated from task list or geofence),
+    // skip the API fetch. The fetch uses the bag ID and would return the bag's first
+    // package, overwriting the correct package the user tapped on.
+    if (widget.initialTask == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<TaskProvider>().loadTaskDetail(widget.taskId);
+      });
+    }
   }
 
   Future<void> _callPhone(String? phone) async {
@@ -46,7 +51,10 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<TaskProvider>();
-    final task = provider.currentTask ?? widget.initialTask;
+    // Prefer initialTask when provided — it is the exact package the user tapped.
+    // Fall back to provider.currentTask only when accessed without a preloaded task
+    // (e.g. deep link or direct URL access).
+    final task = widget.initialTask ?? provider.currentTask;
 
     return Scaffold(
       body: provider.isDetailLoading && task == null
@@ -75,11 +83,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                           width: 38,
                           height: 38,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: context.nekoInputFill,
                             shape: BoxShape.circle,
-                            boxShadow: const [
-                              BoxShadow(color: Color(0x18000000), blurRadius: 8),
-                            ],
                           ),
                           child: const Icon(Icons.arrow_back, size: 20),
                         ),

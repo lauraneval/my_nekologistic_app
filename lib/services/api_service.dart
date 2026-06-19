@@ -24,6 +24,7 @@ class ApiService {
   Future<void> submitDelivery(String id, DeliveryPayload payload) =>
       _delivery.confirmDelivery(
         bagId: id,
+        packageId: payload.packageId,
         podImageUrl: payload.podImageUrl,
         latitude: payload.courierLatitude,
         longitude: payload.courierLongitude,
@@ -57,6 +58,7 @@ class DeliveryPayload {
     required this.targetLatitude,
     required this.targetLongitude,
     required this.deliveredAt,
+    this.packageId,
   });
 
   final String podImageUrl;
@@ -65,6 +67,9 @@ class DeliveryPayload {
   final double targetLatitude;
   final double targetLongitude;
   final DateTime deliveredAt;
+  /// ID of the individual package inside a multi-package bag. When set, the
+  /// server should mark only this package as delivered instead of the whole bag.
+  final String? packageId;
 
   Map<String, dynamic> toJson() => {
         'proof_url': podImageUrl,

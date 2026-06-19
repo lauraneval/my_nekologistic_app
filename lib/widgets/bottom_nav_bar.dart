@@ -22,11 +22,16 @@ class NekoBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(color: Color(0x18000000), blurRadius: 12, offset: Offset(0, -2)),
-        ],
+      decoration: BoxDecoration(
+        color: context.nekoCardBg,
+        border: context.isDark
+            ? const Border(top: BorderSide(color: Color(0xFF374151), width: 0.5))
+            : null,
+        boxShadow: context.isDark
+            ? null
+            : const [
+                BoxShadow(color: Color(0x18000000), blurRadius: 12, offset: Offset(0, -2)),
+              ],
       ),
       child: SafeArea(
         top: false,
@@ -82,7 +87,7 @@ class _NavButton extends StatelessWidget {
               ),
               child: Icon(
                 isActive ? item.activeIcon : item.icon,
-                color: isActive ? Colors.white : AppColors.textSecondary,
+                color: isActive ? Colors.white : context.nekoTextSecondary,
                 size: 22,
               ),
             ),
@@ -92,7 +97,7 @@ class _NavButton extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 10,
                 fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                color: isActive ? AppColors.primaryBlue : AppColors.textSecondary,
+                color: isActive ? AppColors.primaryBlue : context.nekoTextSecondary,
                 letterSpacing: 0.5,
               ),
             ),

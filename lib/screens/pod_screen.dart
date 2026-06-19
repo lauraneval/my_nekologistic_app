@@ -305,6 +305,7 @@ class _PodScreenState extends State<PodScreen> {
           targetLatitude: task?.latitude ?? 0.0,
           targetLongitude: task?.longitude ?? 0.0,
           deliveredAt: DateTime.now(),
+          packageId: task?.packageId,
         ),
       );
 
