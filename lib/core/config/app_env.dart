@@ -26,7 +26,7 @@ class AppEnv {
   );
   static const maxDeliveryDistanceMeters = int.fromEnvironment(
     'MAX_DELIVERY_DISTANCE_METERS',
-    defaultValue: 250,
+    defaultValue: 100,
   );
   static const podBucket = String.fromEnvironment(
     'POD_BUCKET',
