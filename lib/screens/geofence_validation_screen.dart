@@ -97,7 +97,7 @@ class _GeofenceValidationScreenState extends State<GeofenceValidationScreen>
 
       setState(() {
         _distanceMeters = dist;
-        _state = dist < 500 ? _GeoState.valid : _GeoState.outsideRadius;
+        _state = dist < 100 ? _GeoState.valid : _GeoState.outsideRadius;
       });
     } catch (e) {
       setState(() {
