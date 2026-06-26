@@ -266,7 +266,9 @@ String _mapErrorMessage(Object error) {
   return 'An error occurred while processing POD.';
 }
 ```
+
 **Poin presentasi:** "Sistem deteksi error tidak menggunakan pengecekan string manual yang rentan meleset, melainkan mendeteksi langsung berdasarkan tipe Exception di runtime (contoh: SocketException untuk no internet, DioException untuk server error/radius ditolak). Ini membuat aplikasi sangat tangguh menangani edge cases di lapangan."
+
 ---
 
 ## 6. Dokumen QA Test Cases
