@@ -77,7 +77,6 @@ lib/
 | Package | Versi | Fungsi |
 |---|---|---|
 | `geolocator` | `^14.0.2` | Mendapatkan koordinat GPS real-time dengan berbagai level akurasi |
-| `permission_handler` | `^11.3.1` | Request dan cek izin lokasi di runtime (sebelum GPS digunakan) |
 | `geocoding` | `^3.0.0` | Konversi koordinat GPS → alamat teks (reverse geocoding) |
 | `url_launcher` | `^6.3.2` | Buka Google Maps dengan koordinat tujuan untuk navigasi |
 
