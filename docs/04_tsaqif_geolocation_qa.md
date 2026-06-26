@@ -136,7 +136,6 @@ Future<Position> _lockCourierPosition() async {
   return await Geolocator.getCurrentPosition(
     locationSettings: const LocationSettings(
       accuracy: LocationAccuracy.high, // GPS chip + WiFi + Cellular
-      timeLimit: Duration(seconds: 15), // timeout 15 detik
     ),
   );
 }
