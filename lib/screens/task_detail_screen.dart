@@ -378,11 +378,6 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   children: [
                     _infoChip('WEIGHT', '${task.weightKg?.toStringAsFixed(1) ?? '-'} kg'),
                     const SizedBox(width: 20),
-                    _infoChip(
-                      'HANDLE',
-                      handling ?? '-',
-                      valueColor: isCareful ? AppColors.activeOrange : null,
-                    ),
                   ],
                 ),
                 if (task.lengthCm != null || task.widthCm != null || task.heightCm != null) ...[
@@ -463,28 +458,6 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
               fontWeight: FontWeight.w700,
               color: context.nekoTextPrimary,
             ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Icon(Icons.access_time_outlined,
-                  size: 14, color: context.nekoTextSecondary),
-              const SizedBox(width: 4),
-              Text(
-                'Expected by $timeStr',
-                style: GoogleFonts.inter(
-                    fontSize: 12, color: context.nekoTextSecondary),
-              ),
-              const SizedBox(width: 16),
-              Icon(Icons.dialpad_outlined,
-                  size: 14, color: context.nekoTextSecondary),
-              const SizedBox(width: 4),
-              Text(
-                'Code: ${task.accessCode ?? '-'}',
-                style: GoogleFonts.inter(
-                    fontSize: 12, color: context.nekoTextSecondary),
-              ),
-            ],
           ),
         ],
       ),

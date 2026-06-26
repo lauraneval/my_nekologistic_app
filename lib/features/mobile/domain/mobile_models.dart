@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 class MobileTaskItem {
   MobileTaskItem({
     required this.id,
@@ -29,6 +30,7 @@ class MobileTaskItem {
   });
 
   final String id;
+
   /// Non-null only when this card represents one package inside a multi-package bag.
   /// The bag's own [id] is kept for navigation; [packageId] is sent to the server
   /// on delivery so only this specific package is marked delivered.
@@ -175,9 +177,18 @@ class MobileDashboardSummary {
   int get totalPackages =>
       _readInt(raw, ['total_packages', 'package_total', 'totalPackages']);
   double get totalDistanceKm =>
-      _readDouble(raw, ['total_distance_km', 'totalDistanceKm', 'distance_km']) ?? 0.0;
-  int get remainingDrop =>
-      _readInt(raw, ['remaining_drop', 'remainingDrop', 'remaining_drops', 'drops_remaining']);
+      _readDouble(raw, [
+        'total_distance_km',
+        'totalDistanceKm',
+        'distance_km',
+      ]) ??
+      0.0;
+  int get remainingDrop => _readInt(raw, [
+    'remaining_drop',
+    'remainingDrop',
+    'remaining_drops',
+    'drops_remaining',
+  ]);
 }
 
 class MobileTaskBoardResponse {
@@ -193,9 +204,16 @@ class MobileTaskBoardResponse {
 
   factory MobileTaskBoardResponse.fromJson(Map<String, dynamic> json) {
     final payload = _readObject(json, ['data', 'result']);
-    final explicitActive = _readTasks(payload, ['active_tasks', 'activeTasks', 'active']);
+    final explicitActive = _readTasks(payload, [
+      'active_tasks',
+      'activeTasks',
+      'active',
+    ]);
     final explicitQueue = _readTasks(payload, [
-      'queue_tasks', 'queueTasks', 'queued_tasks', 'pending_tasks',
+      'queue_tasks',
+      'queueTasks',
+      'queued_tasks',
+      'pending_tasks',
     ]);
 
     final List<MobileTaskItem> activeTasks;
@@ -213,7 +231,12 @@ class MobileTaskBoardResponse {
     return MobileTaskBoardResponse(
       summary: MobileDashboardSummary.fromJson(
         _readObject(payload, [
-          'summary', 'daily_summary', 'dailySummary', 'stats', 'profile', 'data',
+          'summary',
+          'daily_summary',
+          'dailySummary',
+          'stats',
+          'profile',
+          'data',
         ]),
       ),
       activeTasks: activeTasks,
@@ -331,11 +354,25 @@ class MobileProfileResponse {
     return MobileProfileResponse(raw: merged);
   }
 
-  String get name => _readString(raw, ['name', 'full_name', 'courier_name', 'username']);
-  String get email => _readString(raw, ['email', 'email_address', 'courier_email', 'user_email']);
+  String get name =>
+      _readString(raw, ['name', 'full_name', 'courier_name', 'username']);
+  String get email => _readString(raw, [
+    'email',
+    'email_address',
+    'courier_email',
+    'user_email',
+  ]);
   String get phone => _readString(raw, [
-    'phone', 'phone_number', 'mobile', 'contact_phone',
-    'no_hp', 'nomor_hp', 'telephone', 'telepon', 'hp', 'no_telepon',
+    'phone',
+    'phone_number',
+    'mobile',
+    'contact_phone',
+    'no_hp',
+    'nomor_hp',
+    'telephone',
+    'telepon',
+    'hp',
+    'no_telepon',
   ]);
   double get efficiencyScore =>
       _readDouble(raw, ['efficiency_score', 'efficiencyScore']) ?? 0;
@@ -456,23 +493,43 @@ Iterable<MobileTaskItem> _expandBagPackages(Map<String, dynamic> bagJson) {
   if (packages is List<dynamic> && packages.length > 1) {
     return packages.whereType<Map<String, dynamic>>().map((pkg) {
       final pkgId = pkg['id']?.toString() ?? pkg['package_id']?.toString();
+      debugPrint('BAG => $bagJson');
+
+      debugPrint(
+        'BAG COORD => '
+        'lat=${bagJson['latitude']} '
+        'lng=${bagJson['longitude']} '
+        'destLat=${bagJson['destination_latitude']} '
+        'destLng=${bagJson['destination_longitude']}'
+      );
+
+      debugPrint(
+        'PKG COORD => '
+        'lat=${pkg['latitude']} '
+        'lng=${pkg['longitude']} '
+        'destLat=${pkg['destination_latitude']} '
+        'destLng=${pkg['destination_longitude']}'
+      );
       final merged = <String, dynamic>{
         ...bagJson,
         ...pkg,
         // Bag-level fields that must not be overridden by per-package values:
-        'id': bagJson['id'],           // bag id kept for navigation
-        'package_id': pkgId,           // real per-package id for POD targeting
+        'id': pkgId, // bag id kept for navigation
+        'bag_id': bagJson['id'],
+        'package_id': pkgId, // real per-package id for POD targeting
         'bag_code': bagJson['bag_code'] ?? bagJson['bagCode'],
         'status': pkg['status'] ?? bagJson['status'],
         // Delivery coordinates belong to the BAG (all packages in one bag share
         // the same drop-off point). Per-package lat/lng (if present) are typically
         // pickup points and must not replace the bag's delivery destination.
-        'latitude': bagJson['latitude'],
-        'longitude': bagJson['longitude'],
-        'destination_latitude': bagJson['destination_latitude'],
-        'destination_longitude': bagJson['destination_longitude'],
-        'lat': bagJson['lat'],
-        'lng': bagJson['lng'],
+        'latitude': pkg['latitude'] ?? bagJson['latitude'],
+        'longitude': pkg['longitude'] ?? bagJson['longitude'],
+        'destination_latitude':
+            pkg['destination_latitude'] ?? bagJson['destination_latitude'],
+        'destination_longitude':
+            pkg['destination_longitude'] ?? bagJson['destination_longitude'],
+        'lat': pkg['lat'] ?? bagJson['lat'],
+        'lng': pkg['lng'] ?? bagJson['lng'],
       };
       return MobileTaskItem.fromJson(merged);
     });

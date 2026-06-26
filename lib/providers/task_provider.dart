@@ -38,6 +38,16 @@ class TaskProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final board = await _api.getTasks();
+      for (final t in board.activeTasks) {
+        debugPrint(
+          'TASK => '
+          'id=${t.id}, '
+          'packageId=${t.packageId}, '
+          'receiver=${t.recipientName}, '
+          'lat=${t.latitude}, '
+          'lng=${t.longitude}',
+        );
+      }
       final knownIds = await _loadKnownIds();
       final allNew = [
         ...board.activeTasks,
