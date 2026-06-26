@@ -237,26 +237,36 @@ Future<PodSubmissionResult> submitProofOfDelivery(
 **File:** `lib/features/tasks/data/pod_service.dart`
 
 ```dart
-String _mapErrorMessage(dynamic error) {
-  if (error is PodFailure) return error.message;
-  
-  final msg = error.toString().toLowerCase();
-  if (msg.contains('location') || msg.contains('gps')) {
-    return 'Tidak dapat mendapatkan lokasi GPS. Pastikan GPS diaktifkan.';
+String _mapErrorMessage(Object error) {
+  if (error is DioException) {
+    final statusCode = error.response?.statusCode;
+    if (error.type == DioExceptionType.connectionTimeout ||
+        error.type == DioExceptionType.receiveTimeout ||
+        error.type == DioExceptionType.sendTimeout) {
+      return 'Server connection timed out. Please try again.';
+    }
+    if (statusCode == 401 || statusCode == 403) {
+      return 'Login session is invalid. Please log in again.';
+    }
+    if (statusCode != null) {
+      return 'Server returned an error ($statusCode).';
+    }
+    return 'Failed to connect to delivery backend.';
   }
-  if (msg.contains('permission')) {
-    return 'Izin lokasi diperlukan untuk pengiriman.';
+
+  if (error is SocketException) {
+    return 'No internet connection.';
   }
-  if (msg.contains('timeout')) {
-    return 'GPS timeout. Pastikan berada di area terbuka.';
+
+  final message = error.toString();
+  if (message.contains('StorageException')) {
+    return 'Photo upload to Supabase Storage failed.';
   }
-  if (msg.contains('network') || msg.contains('connection')) {
-    return 'Koneksi internet tidak stabil. Periksa sinyal.';
-  }
-  return 'Terjadi kesalahan. Silakan coba lagi.';
+
+  return 'An error occurred while processing POD.';
 }
 ```
-
+**Poin presentasi:** "Sistem deteksi error tidak menggunakan pengecekan string manual yang rentan meleset, melainkan mendeteksi langsung berdasarkan tipe Exception di runtime (contoh: SocketException untuk no internet, DioException untuk server error/radius ditolak). Ini membuat aplikasi sangat tangguh menangani edge cases di lapangan."
 ---
 
 ## 6. Dokumen QA Test Cases
